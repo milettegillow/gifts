@@ -9,7 +9,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Gifts",
+  title: "Giftbook",
   description: "A private gift planner.",
 };
 

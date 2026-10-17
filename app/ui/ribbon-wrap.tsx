@@ -16,7 +16,7 @@ import { RibbonDefs, ribbonIds } from "./ribbon-defs";
 // load but survives client-side navigation, so later mounts render nothing.
 let playedThisLoad = false;
 
-const SEEN_KEY = "gifts:unwrapped";
+const SEEN_KEY = "giftbook:unwrapped";
 
 // Full speed on the first load of a browser session, quicker after that.
 function speedForThisLoad(): number {

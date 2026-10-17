@@ -1,4 +1,4 @@
--- gifts schema. Safe to re-run. Base tables only: db/migrations/ runs after
+-- giftbook schema. Safe to re-run. Base tables only: db/migrations/ runs after
 -- this and reshapes them. Run with: npm run db:setup
 -- Data is private per user: every query filters on the Clerk user id, and
 -- gifts can only point at a person owned by the same user.

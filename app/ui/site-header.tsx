@@ -19,7 +19,7 @@ export function SiteHeader() {
     <header className="relative pt-5 pb-9">
       <div className="mx-auto flex w-full max-w-[640px] items-center justify-between px-4 pb-3">
         <Link href="/" className="font-display text-[30px] leading-none text-deep-red sm:text-4xl">
-          Gifts
+          Giftbook
         </Link>
         <span className="rounded-full bg-deep-red px-3 py-1 text-gold-light">GBP</span>
       </div>
