@@ -59,26 +59,62 @@ textarea {
   }
 }
 
-/* The login tag hangs off the bow's knot. The wrap scales its 340 x 480
-   viewBox to cover the screen, so the knot (170, 200) sits at the centre
-   horizontally and 40 units above the centre vertically. */
+/* The wrap's space (lib/ribbon.ts): one unit is --s screen px, where
+   --s = clamp(width / 340, 1, 1.8), and the knot sits at (50%, 42%). The
+   tan(atan2()) pair turns two lengths into a plain ratio. Container units
+   keep this matched to the overlay, which the unwrap measures on mount. */
+.ribbon-wrap {
+  container-type: size;
+  --s: clamp(1, tan(atan2(100cqw, 340px)), 1.8);
+}
+
+/* The gold paper halves. One gradient from the top-left to the bottom-right
+   corner, the same as an SVG gradient from (0, 0) to (W, H). */
+.ribbon-paper {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background-image: linear-gradient(
+    calc(180deg - atan2(100cqw, 100cqh)),
+    #a8782a,
+    #f3d68a 30%,
+    #c9973e 50%,
+    #f7e3a6 72%,
+    #a8782a
+  );
+  background-size: 100cqw 100cqh;
+}
+
+.ribbon-paper-right {
+  background-position: -50cqw 0;
+}
+
+/* Units relative to the knot. */
+.ribbon-space {
+  transform: translate(50cqw, 42cqh) scale(var(--s));
+}
+
+/* The login tag hangs off the knot, in the same space as the bow: inside the
+   anchor, 1px is one unit, so the tag scales with the bow. */
 .gift-tag-anchor {
-  --s: max(100vw / 340, 100dvh / 480);
-  --tag-w: min(240px, 100vw - 32px);
+  --half-w: calc(50cqw / var(--s));
+  --below: calc(58cqh / var(--s));
+  --tag-w: 240px;
   --hole-x: 18px;
   --hole-y: 30px;
   /* To the right of the knot, pulled back to keep clear of the edge once rotated. */
-  --tag-x: min(12px, 50vw - 24px - var(--tag-w));
-  /* Below the bow's lower edge. */
-  --tag-y: calc(15 * var(--s) + 28px);
+  --tag-x: min(12px, var(--half-w) - 24px - var(--tag-w));
+  /* Below the bow's lower edge, raised on short screens to stay in view. */
+  --tag-y: clamp(18px, var(--below) - 236px, 40px);
   --hx: calc(var(--tag-x) + var(--hole-x));
   --hy: calc(var(--tag-y) + var(--hole-y));
-  position: fixed;
-  left: 50%;
-  top: calc(50dvh - 40 * var(--s));
-  z-index: 110;
+  position: absolute;
+  left: 50cqw;
+  top: 42cqh;
   width: 0;
   height: 0;
+  transform: scale(var(--s));
+  transform-origin: 0 0;
 }
 
 .gift-tag {

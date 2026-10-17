@@ -1,9 +1,10 @@
+import type { Ref } from "react";
+
 // Gradients and shadow for the ribbon. Ids are prefixed so several SVGs can
 // sit on one page.
 export function ribbonIds(prefix: string) {
   const id = (name: string) => `${prefix}-${name}`;
   return {
-    gold: id("gold"),
     sat: id("sat"),
     shL: id("shL"),
     shR: id("shR"),
@@ -14,18 +15,23 @@ export function ribbonIds(prefix: string) {
 
 export type RibbonIds = ReturnType<typeof ribbonIds>;
 
-export function RibbonDefs({ ids }: { ids: RibbonIds }) {
+// The satin sheen is anchored at `satAt` (the knot), so it sits the same way
+// on the ribbon whatever the screen size.
+export function RibbonDefs({
+  ids,
+  satAt = [0, 0],
+  satRef,
+}: {
+  ids: RibbonIds;
+  satAt?: [number, number];
+  satRef?: Ref<SVGLinearGradientElement>;
+}) {
   return (
     <defs>
-      <linearGradient id={ids.gold} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="340" y2="480">
-        <stop offset="0" stopColor="#a8782a" />
-        <stop offset=".3" stopColor="#f3d68a" />
-        <stop offset=".5" stopColor="#c9973e" />
-        <stop offset=".72" stopColor="#f7e3a6" />
-        <stop offset="1" stopColor="#a8782a" />
-      </linearGradient>
       <linearGradient
+        ref={satRef}
         id={ids.sat}
+        gradientTransform={`translate(${satAt[0]} ${satAt[1]})`}
         gradientUnits="userSpaceOnUse"
         x1="0"
         y1="0"

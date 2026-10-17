@@ -1,9 +1,14 @@
 import Link from "next/link";
-import { cx, cy, knot, loop, piece } from "@/lib/ribbon";
+import { geometry } from "@/lib/ribbon";
 import { RibbonDefs, ribbonIds } from "./ribbon-defs";
 
 const ids = ribbonIds("hdr");
 const SCALE = 0.22;
+
+// The bow drawn around a knot at (170, 200).
+const cx = 170,
+  cy = 200;
+const { loop, piece, knot } = geometry(cx, cy);
 
 // The bow's box in the wrap's coordinates: loops, knot and both tails, with
 // room for the tips and shadow.
