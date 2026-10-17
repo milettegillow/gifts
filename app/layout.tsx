@@ -21,11 +21,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       afterSignOutUrl="/login"
     >
       <html lang="en-GB" className={`${playfair.variable} h-full antialiased`}>
-        <body className="flex min-h-full flex-col">
-          <main className="mx-auto w-full max-w-[640px] flex-1 px-4 py-12">
-            {children}
-          </main>
-        </body>
+        <body className="flex min-h-full flex-col">{children}</body>
       </html>
     </ClerkProvider>
   );

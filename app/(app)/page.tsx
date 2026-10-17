@@ -4,8 +4,7 @@ import { requireUser } from "@/lib/users";
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center gap-8 pt-10">
-      <h1 className="font-display text-6xl text-deep-red">Gifts</h1>
+    <div className="flex flex-col items-center gap-8 pt-6">
       <Suspense>
         <SignedIn />
       </Suspense>

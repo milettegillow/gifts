@@ -9,17 +9,16 @@ import { buttonClass, inputClass } from "@/app/ui/styles";
 
 type Stage = "start" | "waiting";
 
-// Clerk's own wording for the first problem, else a plain fallback.
-function clerkMessage(err: unknown): string {
+// One short line for the tag; the full error goes to the console.
+function shortMessage(err: unknown): string {
   if (isClerkAPIResponseError(err)) {
     const first = err.errors[0];
     // Clerk calls a mistyped address an "invalid identifier".
     if (first?.code?.includes("invalid") && /identifier|email/i.test(first.meta?.paramName ?? "")) {
-      return "That doesn't look like an email address";
+      return "That's not an email address";
     }
-    return first?.longMessage || first?.message || "Couldn't send your link - try again";
   }
-  return err instanceof Error ? err.message : "Couldn't send your link - try again";
+  return "Couldn't send - try again";
 }
 
 function isUnknownAccount(err: unknown): boolean {
@@ -90,7 +89,7 @@ export function LoginFlow() {
     if (id !== attempt.current) return; // superseded by a resend or new email
     if (expired) {
       setStage("start");
-      setError("That link's expired - send a new one");
+      setError("That link's expired");
       return;
     }
     // This tab moves on by itself once the link is opened anywhere.
@@ -109,7 +108,7 @@ export function LoginFlow() {
       if (id !== attempt.current) return;
       console.error("Sending the sign-in link failed", err);
       setStage("start");
-      setError(clerkMessage(err));
+      setError(shortMessage(err));
     }
   }
 
@@ -140,44 +139,40 @@ export function LoginFlow() {
 
   if (stage === "waiting") {
     return (
-      <div className="flex flex-col items-center gap-4 text-center">
-        <h2 className="font-display text-3xl text-deep-red">Check your email</h2>
-        <p className="text-ink">
-          We&apos;ve sent a link to <span className="break-all">{email.trim()}</span>.
-          If it&apos;s not in your inbox, check your junk folder.
-        </p>
-        <div className="flex flex-col items-center gap-3 pt-2">
-          <button type="button" onClick={resend} disabled={resending} className="text-ink underline">
-            {resending ? "Sending…" : "Send it again"}
-          </button>
-          <button type="button" onClick={useDifferentEmail} className="text-ink">
-            Use a different email
-          </button>
-        </div>
+      <div className="flex flex-col gap-3">
+        <h2 className="font-display text-3xl leading-tight text-deep-red">Check your email</h2>
+        <button type="button" onClick={resend} disabled={resending} className="self-start text-ink underline">
+          {resending ? "Sending…" : "Send it again"}
+        </button>
+        <button type="button" onClick={useDifferentEmail} className="self-start text-ink underline">
+          Use a different email
+        </button>
       </div>
     );
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-4">
-      <label className="flex flex-col gap-2">
-        <span className="text-ink">Email</span>
+    <form onSubmit={submit} className="flex flex-col gap-3">
+      <h1 className="font-display text-4xl leading-tight text-deep-red">Gifts</h1>
+      <label className="flex flex-col">
+        <span className="sr-only">Email</span>
         <input
           type="email"
           autoComplete="email"
           required
+          placeholder="you@email.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className={inputClass}
         />
       </label>
       {error && (
-        <p role="alert" className="text-deep-red">
+        <p role="alert" title={error} className="truncate leading-tight text-deep-red">
           {error}
         </p>
       )}
       <button type="submit" disabled={!loaded || !email.trim()} className={`${buttonClass} w-full`}>
-        Send link
+        Open
       </button>
     </form>
   );

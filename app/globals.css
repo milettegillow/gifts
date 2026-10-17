@@ -40,3 +40,89 @@ select,
 textarea {
   border-radius: 0;
 }
+
+/* The unwrap: no overlay at all with reduced motion. If the script never
+   runs, the wrap gets out of the way rather than covering the page. */
+.ribbon-unwrap {
+  animation: ribbon-failsafe 0s 8s forwards;
+}
+
+@keyframes ribbon-failsafe {
+  to {
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ribbon-unwrap {
+    display: none;
+  }
+}
+
+/* The login tag hangs off the bow's knot. The wrap scales its 340 x 480
+   viewBox to cover the screen, so the knot (170, 200) sits at the centre
+   horizontally and 40 units above the centre vertically. */
+.gift-tag-anchor {
+  --s: max(100vw / 340, 100dvh / 480);
+  --tag-w: min(240px, 100vw - 32px);
+  --hole-x: 18px;
+  --hole-y: 30px;
+  /* To the right of the knot, pulled back to keep clear of the edge once rotated. */
+  --tag-x: min(12px, 50vw - 24px - var(--tag-w));
+  /* Below the bow's lower edge. */
+  --tag-y: calc(15 * var(--s) + 28px);
+  --hx: calc(var(--tag-x) + var(--hole-x));
+  --hy: calc(var(--tag-y) + var(--hole-y));
+  position: fixed;
+  left: 50%;
+  top: calc(50dvh - 40 * var(--s));
+  z-index: 110;
+  width: 0;
+  height: 0;
+}
+
+.gift-tag {
+  position: absolute;
+  left: var(--tag-x);
+  top: var(--tag-y);
+  width: var(--tag-w);
+  transform: rotate(-4deg);
+  transform-origin: var(--hole-x) var(--hole-y);
+  filter: drop-shadow(1px 3px 3px rgba(61, 26, 0, 0.3));
+  /* The hole goes right through. */
+  mask: radial-gradient(circle 4px at var(--hole-x) var(--hole-y), transparent 95%, #000 100%);
+}
+
+/* A 1px border that follows the clipped corners. */
+.gift-tag-edge {
+  background: #b8862b;
+  padding: 1px;
+  clip-path: polygon(20px 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px), 0 20px);
+}
+
+.gift-tag-face {
+  background: var(--color-cream);
+  clip-path: polygon(19.6px 0, 100% 0, 100% 100%, 19.6px 100%, 0 calc(100% - 19.6px), 0 19.6px);
+}
+
+.gift-tag-hole {
+  position: absolute;
+  left: calc(var(--hole-x) - 5px);
+  top: calc(var(--hole-y) - 5px);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid #b8862b;
+}
+
+/* From the knot to the hole, over the tag. */
+.gift-tag-string {
+  position: absolute;
+  left: 0;
+  top: -0.75px;
+  width: hypot(var(--hx), var(--hy));
+  height: 1.5px;
+  background: #f7e3a6;
+  transform-origin: 0 50%;
+  transform: rotate(atan2(var(--hy), var(--hx)));
+}
