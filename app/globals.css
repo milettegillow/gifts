@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+/* Wrapping paper: gold foil, ribbon red and cream. */
+@theme {
+  --color-ribbon: #8c1424;
+  --color-deep-red: #6e0f1b;
+  --color-ink: #3d0a10;
+  --color-cream: #fffaf0;
+  --color-gold-light: #f7e3a6;
+  --color-gold-mid: #c9973e;
+  --color-gold-dark: #a8782a;
+
+  --font-display: var(--font-playfair), Georgia, serif;
+  --font-serif: Georgia, "Times New Roman", serif;
+}
+
+html {
+  background-color: #c9973e;
+}
+
+body {
+  color: var(--color-ink);
+  font-family: var(--font-serif);
+}
+
+/* Gold foil, fixed so it never stretches on long pages. A fixed layer rather
+   than background-attachment, which mobile Safari ignores. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(135deg, #a8782a, #f3d68a 35%, #c9973e 55%, #f7e3a6 75%, #a8782a);
+}
+
+/* Square corners everywhere, including Safari's default inputs and buttons. */
+button,
+input,
+select,
+textarea {
+  border-radius: 0;
+}
