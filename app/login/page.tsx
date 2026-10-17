@@ -10,7 +10,7 @@ export default function LoginPage() {
       <div className="gift-tag-anchor">
         <div className="gift-tag">
           <div className="gift-tag-edge">
-            <div className="gift-tag-face min-h-[200px] py-5 pr-5 pl-10">
+            <div className="gift-tag-face flex flex-col justify-center py-[8px] pr-[8px] pl-[28px]">
               <Suspense>
                 <LoginFlow />
               </Suspense>

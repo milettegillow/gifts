@@ -100,13 +100,13 @@ textarea {
 .ribbon-wrap {
   --half-w: calc(50cqw / var(--s));
   --below: calc(58cqh / var(--s));
-  --tag-w: 240px;
-  --hole-x: 18px;
-  --hole-y: 30px;
-  /* To the right of the knot, pulled back to keep clear of the edge once rotated. */
-  --tag-x: min(12px, var(--half-w) - 24px - var(--tag-w));
-  /* Below the bow's lower edge, raised on short screens to stay in view. */
-  --tag-y: clamp(18px, var(--below) - 236px, 40px);
+  --tag-w: 134px;
+  --tag-h: 96px;
+  --hole-x: 14px;
+  --hole-y: 43px;
+  /* Top-left at (cx + 26, cy + 90), pulled in on screens too small to fit it. */
+  --tag-x: min(26px, var(--half-w) - 8px - var(--tag-w));
+  --tag-y: min(90px, var(--below) - 12px - var(--tag-h));
   --hx: calc(var(--tag-x) + var(--hole-x));
   --hy: calc(var(--tag-y) + var(--hole-y));
 }
@@ -128,32 +128,61 @@ textarea {
   width: var(--tag-w);
   transform: rotate(-4deg);
   transform-origin: var(--hole-x) var(--hole-y);
-  filter: drop-shadow(1px 3px 3px rgba(61, 26, 0, 0.3));
+  filter: drop-shadow(0.6px 1.6px 1.8px rgba(61, 26, 0, 0.3));
   /* The hole goes right through. */
-  mask: radial-gradient(circle 4px at var(--hole-x) var(--hole-y), transparent 95%, #000 100%);
+  mask: radial-gradient(circle 2.5px at var(--hole-x) var(--hole-y), transparent 95%, #000 100%);
 }
 
-/* A 1px border that follows the clipped corners. */
+/* A 1-unit border that follows the clipped corners. */
 .gift-tag-edge {
   position: relative;
   background: #b8862b;
   padding: 1px;
-  clip-path: polygon(20px 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px), 0 20px);
+  clip-path: polygon(11px 0, 100% 0, 100% 100%, 11px 100%, 0 calc(100% - 11px), 0 11px);
 }
 
 .gift-tag-face {
+  min-height: calc(var(--tag-h) - 2px);
   background: var(--color-cream);
-  clip-path: polygon(19.6px 0, 100% 0, 100% 100%, 19.6px 100%, 0 calc(100% - 19.6px), 0 19.6px);
+  clip-path: polygon(10.6px 0, 100% 0, 100% 100%, 10.6px 100%, 0 calc(100% - 10.6px), 0 10.6px);
 }
 
 .gift-tag-hole {
   position: absolute;
-  left: calc(var(--hole-x) - 5px);
-  top: calc(var(--hole-y) - 5px);
-  width: 10px;
-  height: 10px;
+  left: calc(var(--hole-x) - 3.5px);
+  top: calc(var(--hole-y) - 3.5px);
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  border: 1px solid #b8862b;
+  border: 0.75px solid #b8862b;
+}
+
+/* The email field, 96 x 22 units. iOS zooms into any input whose computed
+   font size is under 16px, and the tag's scale doesn't count, so the input is
+   laid out in real px (at least 16px text) and scaled back down into units. */
+.gift-tag-input-box {
+  width: 96px;
+  height: 22px;
+}
+
+.gift-tag-input {
+  width: calc(96px * var(--s));
+  height: calc(22px * var(--s));
+  padding: 0 calc(4px * var(--s));
+  border: calc(1px * var(--s)) solid var(--color-gold-mid);
+  background: #fff;
+  color: var(--color-ink);
+  font-size: max(16px, calc(10px * var(--s)));
+  transform: scale(calc(1 / var(--s)));
+  transform-origin: 0 0;
+}
+
+.gift-tag-input::placeholder {
+  color: color-mix(in srgb, var(--color-ink) 50%, transparent);
+}
+
+.gift-tag-input:focus {
+  outline: calc(2px * var(--s)) solid var(--color-ribbon);
 }
 
 /* Where the string crosses the tag face to the hole: the same line as in the
