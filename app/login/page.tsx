@@ -6,7 +6,7 @@ import { LoginFlow } from "./login-flow";
 // enter their email.
 export default function LoginPage() {
   return (
-    <RibbonWrap mode="static">
+    <RibbonWrap mode="static" tagString>
       <div className="gift-tag-anchor">
         <div className="gift-tag">
           <div className="gift-tag-edge">
@@ -15,10 +15,10 @@ export default function LoginPage() {
                 <LoginFlow />
               </Suspense>
             </div>
+            <span aria-hidden className="gift-tag-face-string" />
           </div>
           <span aria-hidden className="gift-tag-hole" />
         </div>
-        <span aria-hidden className="gift-tag-string" />
       </div>
     </RibbonWrap>
   );

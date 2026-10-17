@@ -95,8 +95,9 @@ textarea {
 }
 
 /* The login tag hangs off the knot, in the same space as the bow: inside the
-   anchor, 1px is one unit, so the tag scales with the bow. */
-.gift-tag-anchor {
+   anchor, 1px is one unit, so the tag scales with the bow. Its place is set
+   on the wrap so the string in the SVG can reach the same hole. */
+.ribbon-wrap {
   --half-w: calc(50cqw / var(--s));
   --below: calc(58cqh / var(--s));
   --tag-w: 240px;
@@ -108,6 +109,9 @@ textarea {
   --tag-y: clamp(18px, var(--below) - 236px, 40px);
   --hx: calc(var(--tag-x) + var(--hole-x));
   --hy: calc(var(--tag-y) + var(--hole-y));
+}
+
+.gift-tag-anchor {
   position: absolute;
   left: 50cqw;
   top: 42cqh;
@@ -131,6 +135,7 @@ textarea {
 
 /* A 1px border that follows the clipped corners. */
 .gift-tag-edge {
+  position: relative;
   background: #b8862b;
   padding: 1px;
   clip-path: polygon(20px 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px), 0 20px);
@@ -151,14 +156,25 @@ textarea {
   border: 1px solid #b8862b;
 }
 
-/* From the knot to the hole, over the tag. */
-.gift-tag-string {
+/* Where the string crosses the tag face to the hole: the same line as in the
+   SVG, seen from the hole and turned back by the tag's tilt, clipped to the
+   tag by .gift-tag-edge. */
+.gift-tag-face-string {
   position: absolute;
-  left: 0;
-  top: -0.75px;
+  left: var(--hole-x);
+  top: calc(var(--hole-y) - 0.75px);
   width: hypot(var(--hx), var(--hy));
   height: 1.5px;
   background: #f7e3a6;
   transform-origin: 0 50%;
-  transform: rotate(atan2(var(--hy), var(--hx)));
+  transform: rotate(calc(atan2(-1 * var(--hy), -1 * var(--hx)) + 4deg));
+}
+
+/* From the knot centre to the hole, under the knot (in the SVG, relative to
+   the knot): a 1-unit rect turned towards the hole and stretched to reach it.
+   tan(atan2(length, 1px)) turns the length into a plain number. */
+.gift-tag-string {
+  fill: #f7e3a6;
+  transform: rotate(atan2(var(--hy), var(--hx)))
+    scale(tan(atan2(hypot(var(--hx), var(--hy)), 1px)), 1);
 }

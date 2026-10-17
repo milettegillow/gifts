@@ -31,7 +31,8 @@ function speedForThisLoad(): number {
 
 // The gift wrap over the whole screen. "static" holds the tied pose (login);
 // "unwrap" is rendered on the server so nothing flashes, then unties and
-// slides away. Children sit on top, in the same space as the bow.
+// slides away. Children sit on top, in the same space as the bow; with
+// `tagString`, the gift tag's string runs from under the knot to its hole.
 //
 // The ribbon is drawn in a W x H space where one unit is s screen px (see
 // lib/ribbon.ts). CSS places and scales it (.ribbon-space), so the server's
@@ -39,9 +40,11 @@ function speedForThisLoad(): number {
 // frame for this screen on mount, which looks identical.
 export function RibbonWrap({
   mode,
+  tagString = false,
   children,
 }: {
   mode: "static" | "unwrap";
+  tagString?: boolean;
   children?: ReactNode;
 }) {
   const ids = ribbonIds(`rw${useId().replace(/[^a-zA-Z0-9]/g, "")}`);
@@ -157,6 +160,11 @@ export function RibbonWrap({
                 <path ref={shadeL} d={shapes.loopL} fill={`url(#${ids.shL})`} />
                 <path ref={loopR} d={shapes.loopR} fill={`url(#${ids.sat})`} />
                 <path ref={shadeR} d={shapes.loopR} fill={`url(#${ids.shR})`} />
+                {tagString && (
+                  <g transform={`translate(${F.cx} ${F.cy})`}>
+                    <rect className="gift-tag-string" x="0" y="-0.75" width="1" height="1.5" />
+                  </g>
+                )}
                 <rect ref={knot} {...shapes.knot} fill={`url(#${ids.sat})`} />
                 <rect ref={knotShade} {...shapes.knot} fill={`url(#${ids.shK})`} />
               </g>
