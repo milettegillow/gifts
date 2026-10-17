@@ -153,7 +153,7 @@ export function LoginFlow() {
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-3">
-      <h1 className="font-display text-4xl leading-tight text-deep-red">Gifts</h1>
+      <h1 className="font-display text-4xl leading-tight text-deep-red">Giftbook</h1>
       <label className="flex flex-col">
         <span className="sr-only">Email</span>
         <input
