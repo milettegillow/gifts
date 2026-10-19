@@ -47,7 +47,6 @@ export async function fillShipping(giftId: string, userId: string): Promise<void
       on conflict (shop_domain, country) do update set
         days_min = excluded.days_min, days_max = excluded.days_max, text = excluded.text, fetched_at = excluded.fetched_at
     `;
-    console.log(`[shipping] ${domain} -> ${country}: ${JSON.stringify(info)}`);
   }
   if (info.days_min == null) return;
   await sql`

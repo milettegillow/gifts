@@ -9,8 +9,12 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Giftbook",
+  // Absolute URLs for the Open Graph image.
+  metadataBase: new URL("https://giftbook.milettegillow.com"),
+  title: { default: "Giftbook", template: "%s - Giftbook" },
   description: "A private gift planner.",
+  // Private: keep every page out of search engines.
+  robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

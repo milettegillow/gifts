@@ -4,12 +4,14 @@ import { SignOutButton } from "@clerk/nextjs";
 import { isCountryCode, listCountries } from "@/lib/countries";
 import { listPeople } from "@/lib/people";
 import { getUserSettings, requireUser } from "@/lib/users";
+import { PeopleSkeleton } from "@/app/ui/skeletons";
+import { linkButtonClass } from "@/app/ui/styles";
 import { Onboarding } from "./onboarding";
 import { PeopleGrid } from "./people-grid";
 
 export default function Home() {
   return (
-    <Suspense>
+    <Suspense fallback={<PeopleSkeleton />}>
       <People />
     </Suspense>
   );
@@ -37,7 +39,7 @@ async function People() {
       <h1 className="sr-only">People</h1>
       <PeopleGrid people={people} />
       <SignOutButton>
-        <button type="button" className="self-start text-ink underline">
+        <button type="button" className={`${linkButtonClass} self-start`}>
           Log out
         </button>
       </SignOutButton>

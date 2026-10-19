@@ -91,7 +91,7 @@ export function InsightsSection({
                   type="button"
                   aria-pressed={on}
                   onClick={() => onTheme(on ? null : t.label)}
-                  className={`border px-3 py-1.5 ${on ? "border-deep-red bg-deep-red text-gold-light" : "border-cream bg-cream text-deep-red"}`}
+                  className={`min-h-11 border px-3 py-1.5 ${on ? "border-deep-red bg-deep-red text-gold-light" : "border-cream bg-cream text-deep-red"}`}
                 >
                   {t.label}
                 </button>
@@ -111,7 +111,7 @@ export function InsightsSection({
                   href={`https://www.google.com/search?q=${encodeURIComponent(s.query)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="self-start text-ink underline"
+                  className="inline-flex min-h-11 items-center self-start text-ink underline"
                 >
                   {s.name}
                 </a>

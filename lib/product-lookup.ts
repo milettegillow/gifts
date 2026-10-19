@@ -60,12 +60,10 @@ export async function lookupProduct(url: string, userId: string): Promise<Produc
     }
   } else if (page.kind === "blocked" || (page.kind === "error" && !page.reason.startsWith("unsafe"))) {
     // We couldn't read it ourselves; Claude's web fetch may be able to.
-    console.log(`[scrape] ${url}: ${page.reason}, trying web fetch`);
     result = { ...EMPTY, url, sources: {} };
     const claude = await productViaWebFetch(userId, url);
     if (claude) fillGaps(result, fromClaude(claude), "claude-fetch");
   } else {
-    console.log(`[scrape] ${url}: ${page.kind === "gone" ? `HTTP ${page.status}` : page.reason}`);
     return null;
   }
 

@@ -36,9 +36,10 @@ export function GiftCard({
         <span className="relative block aspect-square w-full overflow-hidden">
           <Image
             src={!gift.image || broken ? PRESENT_IMAGE : gift.image}
-            alt=""
+            alt={gift.title}
             fill
             unoptimized
+            loading="lazy"
             sizes="(min-width: 1024px) 160px, (min-width: 640px) 200px, 50vw"
             referrerPolicy="no-referrer"
             onError={() => setBroken(true)}
@@ -59,13 +60,13 @@ export function GiftCard({
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`Open ${gift.title}`}
-          className="absolute top-2 right-2 bg-cream/90 p-1.5 text-ink hover:bg-cream"
+          className="absolute top-1 right-1 flex size-11 items-center justify-center bg-cream/90 text-ink hover:bg-cream"
         >
           <LinkIcon className="size-5" />
         </a>
       )}
       {planning && (
-        <label className="absolute top-2 left-2 flex cursor-pointer bg-cream/90 p-1.5">
+        <label className="absolute top-1 left-1 flex size-11 cursor-pointer items-center justify-center bg-cream/90">
           <input
             type="checkbox"
             checked={!!ticked}

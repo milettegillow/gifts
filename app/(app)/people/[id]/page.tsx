@@ -10,15 +10,26 @@ import { isStoredImage, isVideoStill } from "@/lib/photos";
 import { pricing } from "@/lib/rates";
 import { recheckStock } from "@/lib/stock";
 import { getUserSettings, requireUser } from "@/lib/users";
+import type { Metadata } from "next";
 import { Avatar } from "@/app/ui/avatar";
+import { PersonSkeleton } from "@/app/ui/skeletons";
+import { linkButtonClass } from "@/app/ui/styles";
 import { EditPerson } from "./edit-person";
 import { AddGift } from "./gift-grid";
 import type { GiftCardData } from "./gift-types";
 import { PersonGifts } from "./person-gifts";
 
+// "Mum - Giftbook" (the layout's title template adds the suffix).
+export async function generateMetadata({ params }: PageProps<"/people/[id]">): Promise<Metadata> {
+  const { id } = await params;
+  const userId = await requireUser();
+  const person = await getPerson(id, userId);
+  return { title: person?.name ?? "Not found" };
+}
+
 export default function PersonPage({ params }: PageProps<"/people/[id]">) {
   return (
-    <Suspense>
+    <Suspense fallback={<PersonSkeleton />}>
       <PersonView params={params} />
     </Suspense>
   );
@@ -75,7 +86,7 @@ async function PersonView({ params }: { params: PageProps<"/people/[id]">["param
   const hash = giftsHash(gifts);
   const stale = hasInsights && insights?.sourceHash !== hash;
   if (stale) {
-    after(() => generateInsights(person.id, userId).then((r) => r !== "done" && console.log(`[insights] ${person.id}: ${r}`)));
+    after(() => generateInsights(person.id, userId));
   }
 
   const context = { personId: person.id, currencies, defaultCurrency: settings.currency ?? "USD" };
@@ -117,7 +128,7 @@ async function PersonView({ params }: { params: PageProps<"/people/[id]">["param
   return (
     <div className="flex flex-col gap-8 pt-2">
       <div className="flex items-center justify-between">
-        <Link href="/" className="text-ink underline">
+        <Link href="/" className={linkButtonClass}>
           All people
         </Link>
         <EditPerson person={{ id: person.id, name: person.name, photo: person.photo }} />

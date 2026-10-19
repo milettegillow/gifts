@@ -25,7 +25,7 @@ export function Stars({
             aria-label={`${n} - ${RATING_LABELS[n]}`}
             disabled={disabled}
             onClick={() => onChange(n)}
-            className={`px-0.5 text-2xl leading-none ${value != null && n <= value ? "text-ribbon" : "text-gold-dark"}`}
+            className={`inline-flex size-11 items-center justify-center text-2xl leading-none ${value != null && n <= value ? "text-ribbon" : "text-gold-dark"}`}
           >
             {value != null && n <= value ? "★" : "☆"}
           </button>

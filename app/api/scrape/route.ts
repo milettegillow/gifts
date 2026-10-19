@@ -18,7 +18,6 @@ export async function POST(request: Request) {
   try {
     const product = await lookupProduct(url, userId);
     if (!product) return fail("Couldn't read that page", 422);
-    console.log(`[scrape] ${url} sources ${JSON.stringify(product.sources)}`);
     return NextResponse.json(product);
   } catch (err) {
     console.error("Reading a product page failed", url, err instanceof Error ? err.message : err);

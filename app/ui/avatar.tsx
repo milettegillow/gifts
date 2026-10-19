@@ -6,7 +6,7 @@ export function Avatar({ name, photo, size }: { name: string; photo: string | nu
     return (
       <Image
         src={photo}
-        alt=""
+        alt={name}
         width={size}
         height={size}
         unoptimized

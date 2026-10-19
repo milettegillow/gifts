@@ -146,6 +146,8 @@ export function RibbonWrap({
   return (
     <div
       ref={wrap}
+      // The unwrap is decoration; the login wrap holds the tag form.
+      aria-hidden={mode === "unwrap" ? true : undefined}
       className={`ribbon-wrap fixed inset-0 z-[100] ${mode === "unwrap" ? "ribbon-unwrap" : ""}`}
     >
       <div ref={pl} aria-hidden className="ribbon-paper left-0 w-[calc(50%+1px)]" />

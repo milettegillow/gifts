@@ -139,12 +139,12 @@ export function LoginFlow() {
   // Sized in tag units (see .gift-tag-anchor): the tag is 134 x 112.
   if (stage === "waiting") {
     return (
-      <div className="flex flex-col items-start gap-[3px]">
+      <div className="flex flex-col items-start">
         <h2 className="font-display text-[14px] leading-[16px] text-deep-red">Check your email</h2>
-        <button type="button" onClick={resend} disabled={resending} className="text-[11px] leading-[14px] text-ink underline">
+        <button type="button" onClick={resend} disabled={resending} className="min-h-[40px] text-[11px] leading-[14px] text-ink underline">
           {resending ? "Sending…" : "Send it again"}
         </button>
-        <button type="button" onClick={useDifferentEmail} className="text-[11px] leading-[14px] text-ink underline">
+        <button type="button" onClick={useDifferentEmail} className="min-h-[40px] text-[11px] leading-[14px] text-ink underline">
           Use another email
         </button>
       </div>
@@ -174,7 +174,7 @@ export function LoginFlow() {
       <button
         type="submit"
         disabled={!loaded || !email.trim()}
-        className="h-[20px] w-full bg-ribbon text-[11px] text-gold-light hover:bg-deep-red disabled:opacity-60"
+        className="gift-tag-open h-[20px] w-full bg-ribbon text-[11px] text-gold-light hover:bg-deep-red disabled:opacity-60"
       >
         Open
       </button>

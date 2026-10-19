@@ -53,7 +53,6 @@ export async function recheckStock(personId: string, userId: string): Promise<vo
         `;
       }
       // Network errors and blocked pages leave the gift untouched.
-      console.log(`[stock] ${gift.url}: ${page.kind}`);
     });
   } finally {
     for (const g of gifts) inFlight.delete(g.id);

@@ -167,7 +167,7 @@ function PersonForm({ onClose, person }: { onClose: () => void; person?: Editing
             type="button"
             onClick={() => setConfirming(true)}
             disabled={busy}
-            className="ml-auto text-deep-red underline disabled:opacity-60"
+            className="ml-auto inline-flex min-h-11 items-center text-deep-red underline disabled:opacity-60"
           >
             Delete
           </button>

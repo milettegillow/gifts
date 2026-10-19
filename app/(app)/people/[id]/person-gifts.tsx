@@ -90,7 +90,7 @@ export function PersonGifts({
             type="button"
             aria-current={tab === t.key ? "page" : undefined}
             onClick={() => update({ tab: t.key === "ideas" ? null : t.key }, true)}
-            className={`px-1 py-2.5 leading-tight ${tab === t.key ? "bg-deep-red text-gold-light" : "text-deep-red"}`}
+            className={`min-h-11 px-1 py-2 leading-tight ${tab === t.key ? "bg-deep-red text-gold-light" : "text-deep-red"}`}
           >
             {t.label} {byStatus[t.key].length}
           </button>
@@ -352,7 +352,7 @@ function FilterControls({
           <option value="fastest">Fastest delivery</option>
         </select>
       </label>
-      <label className="flex cursor-pointer items-center gap-2 py-2">
+      <label className="flex min-h-11 cursor-pointer items-center gap-2">
         <input
           type="checkbox"
           checked={filters.low}

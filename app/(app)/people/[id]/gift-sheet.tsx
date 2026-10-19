@@ -385,7 +385,7 @@ function GiftForm({
               </Field>
               <Field label="Image" htmlFor="gift-image">
                 <div className="flex items-center gap-3">
-                  <ImagePreview src={image.trim() || null} />
+                  <ImagePreview src={image.trim() || null} alt={title.trim() || "Gift"} />
                   <input id="gift-image" type="url" inputMode="url" autoComplete="off" value={image} onChange={(e) => setImage(e.target.value)} className={fieldClass} />
                 </div>
               </Field>
@@ -402,7 +402,7 @@ function GiftForm({
             <input id="gift-title" type="text" required maxLength={200} value={title} onChange={(e) => setTitle(e.target.value)} className={fieldClass} />
           </Field>
           <div className="flex items-center gap-4">
-            <ImagePreview src={shownPhoto} />
+            <ImagePreview src={shownPhoto} alt={title.trim() || "Gift"} />
             <div className="flex flex-col items-start gap-1">
               <label className={`${linkButtonClass} cursor-pointer`}>
                 {shownPhoto ? "Change photo" : "Add photo"}
@@ -466,7 +466,7 @@ function GiftForm({
               type="button"
               onClick={() => setConfirming(true)}
               disabled={busy}
-              className="ml-auto text-deep-red underline disabled:opacity-60"
+              className="ml-auto inline-flex min-h-11 items-center text-deep-red underline disabled:opacity-60"
             >
               Delete
             </button>
@@ -506,15 +506,16 @@ function Field({ label, htmlFor, children }: { label: string; htmlFor: string; c
 }
 
 // A small square preview that falls back to the present.
-function ImagePreview({ src }: { src: string | null }) {
+function ImagePreview({ src, alt }: { src: string | null; alt: string }) {
   const [broken, setBroken] = useState<string | null>(null);
   return (
     <span className="relative block size-16 shrink-0 overflow-hidden bg-cream">
       <Image
         src={src && broken !== src ? src : PRESENT_IMAGE}
-        alt=""
+        alt={alt}
         fill
         unoptimized
+        loading="lazy"
         sizes="64px"
         referrerPolicy="no-referrer"
         onError={() => setBroken(src)}

@@ -33,6 +33,33 @@ body::before {
   background: linear-gradient(135deg, #a8782a, #f3d68a 35%, #c9973e 55%, #f7e3a6 75%, #a8782a);
 }
 
+/* Keyboard focus, everywhere, in deep red. */
+:focus-visible {
+  outline: 2px solid var(--color-deep-red);
+  outline-offset: 2px;
+}
+
+/* Loading placeholders: cream with a slow gold sheen. */
+.skeleton {
+  background: linear-gradient(100deg, var(--color-cream) 40%, var(--color-gold-light) 50%, var(--color-cream) 60%) 0 0 / 300% 100%;
+  animation: skeleton-shimmer 2.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
 /* Square corners everywhere, including Safari's default inputs and buttons. */
 button,
 input,
@@ -182,7 +209,36 @@ textarea {
 }
 
 .gift-tag-input:focus {
-  outline: calc(2px * var(--s)) solid var(--color-ribbon);
+  outline: calc(2px * var(--s)) solid var(--color-deep-red);
+}
+
+/* The tag's field and button are 20 units tall by design; these invisible
+   extensions give each a tap area of 40 units (44px or more on phones),
+   reaching into the space above the field and below the button. */
+.gift-tag-input-box {
+  position: relative;
+}
+
+.gift-tag-input-box::before,
+.gift-tag-open::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  right: -4px;
+}
+
+.gift-tag-input-box::before {
+  top: -16px;
+  bottom: -4px;
+}
+
+.gift-tag-open {
+  position: relative;
+}
+
+.gift-tag-open::before {
+  top: -4px;
+  bottom: -16px;
 }
 
 /* Where the string crosses the tag face to the hole: the same line as in the
