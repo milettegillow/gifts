@@ -15,6 +15,8 @@ export type Person = {
   // Where the photo is served from (it lives in a private store), or null.
   photo: string | null;
   saved: number;
+  // In the user's currency.
+  budget: number | null;
 };
 
 // Changes whenever the photo does, so browsers can cache each one for good.
@@ -31,13 +33,14 @@ function toPerson(row: Record<string, unknown>): Person {
     name: row.name as string,
     photo: photoSrc(id, row.photo_url as string | null),
     saved: Number(row.saved ?? 0),
+    budget: row.budget_amount == null ? null : Number(row.budget_amount),
   };
 }
 
 // Oldest first, so the grid doesn't reshuffle as people are added.
 export async function listPeople(userId: string): Promise<Person[]> {
   const rows = await sql`
-    select p.id, p.name, p.photo_url,
+    select p.id, p.name, p.photo_url, p.budget_amount,
       count(g.id) filter (where g.status = 'saved') as saved
     from people p
     left join gifts g on g.person_id = p.id and g.user_id = p.user_id
@@ -51,7 +54,7 @@ export async function listPeople(userId: string): Promise<Person[]> {
 export async function getPerson(id: string, userId: string): Promise<Person | null> {
   if (!isUuid(id)) return null;
   const rows = await sql`
-    select p.id, p.name, p.photo_url,
+    select p.id, p.name, p.photo_url, p.budget_amount,
       (select count(*) from gifts g
         where g.person_id = p.id and g.user_id = p.user_id and g.status = 'saved') as saved
     from people p
@@ -105,4 +108,12 @@ export async function deletePerson(id: string, userId: string): Promise<{ photoU
     delete from people where id = ${id} and user_id = ${userId} returning photo_url
   `;
   return rows[0] ? { photoUrl: (rows[0].photo_url as string | null) ?? null } : null;
+}
+
+export async function setBudget(id: string, userId: string, amount: number | null): Promise<boolean> {
+  if (!isUuid(id)) return false;
+  const rows = await sql`
+    update people set budget_amount = ${amount} where id = ${id} and user_id = ${userId} returning id
+  `;
+  return rows.length > 0;
 }

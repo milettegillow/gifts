@@ -15,9 +15,11 @@ async function fetchRates(base: string): Promise<Record<string, number>> {
   return data.rates ?? {};
 }
 
-// A formatter for prices shown to a user: converted into their currency
-// when we have a rate, otherwise in the shop's own currency.
-export async function priceFormatter(userCurrency: string | null) {
+// Prices for one user: converted into their currency when we have a rate.
+// convert() gives the amount in their currency (null if it can't), for
+// filtering, sorting and totals; format() is what the card shows - the shop's
+// own currency when conversion isn't possible.
+export async function pricing(userCurrency: string | null) {
   let rates: Record<string, number> | null = null;
   if (userCurrency) {
     try {
@@ -26,12 +28,18 @@ export async function priceFormatter(userCurrency: string | null) {
       console.error("Fetching exchange rates failed", err);
     }
   }
-  return (amount: number | null, currency: string | null): string | null => {
+  function convert(amount: number | null, currency: string | null): number | null {
     if (amount == null) return null;
-    if (!currency) return userCurrency ? formatMoney(amount, userCurrency) : String(amount);
-    if (!userCurrency || currency === userCurrency) return formatMoney(amount, currency);
+    if (!currency || currency === userCurrency) return amount;
     // rates[X] is how many X one unit of the user's currency buys.
     const rate = rates?.[currency];
-    return rate ? formatMoney(amount / rate, userCurrency) : formatMoney(amount, currency);
-  };
+    return rate ? amount / rate : null;
+  }
+  function format(amount: number | null, currency: string | null): string | null {
+    if (amount == null) return null;
+    const converted = convert(amount, currency);
+    if (converted != null && userCurrency) return formatMoney(converted, userCurrency);
+    return currency ? formatMoney(amount, currency) : String(amount);
+  }
+  return { convert, format };
 }

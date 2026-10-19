@@ -3,16 +3,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
 import { supportedCurrencies } from "@/lib/currencies";
-import { giftImageSrc, listSavedGifts, type GiftRow } from "@/lib/gifts";
+import { giftImageSrc, listGifts, type GiftRow } from "@/lib/gifts";
 import { getPerson } from "@/lib/people";
 import { isStoredImage, isVideoStill } from "@/lib/photos";
-import { priceFormatter } from "@/lib/rates";
+import { pricing } from "@/lib/rates";
 import { recheckStock } from "@/lib/stock";
 import { getUserSettings, requireUser } from "@/lib/users";
 import { Avatar } from "@/app/ui/avatar";
 import { EditPerson } from "./edit-person";
-import { AddGift, GiftGrid } from "./gift-grid";
+import { AddGift } from "./gift-grid";
 import type { GiftCardData } from "./gift-types";
+import { PersonGifts } from "./person-gifts";
 
 export default function PersonPage({ params }: PageProps<"/people/[id]">) {
   return (
@@ -42,6 +43,14 @@ function stockTag(g: GiftRow): GiftCardData["stock"] {
   }
 }
 
+// "Birthday, Oct 2026"; just the month and year without an occasion.
+function occasionLabel(g: GiftRow): string | null {
+  const when = g.giftedOn
+    ? new Date(`${g.giftedOn}T00:00:00Z`).toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" })
+    : null;
+  return [g.occasion, when].filter(Boolean).join(", ") || null;
+}
+
 async function PersonView({ params }: { params: PageProps<"/people/[id]">["params"] }) {
   const { id } = await params;
   const userId = await requireUser();
@@ -53,7 +62,7 @@ async function PersonView({ params }: { params: PageProps<"/people/[id]">["param
   if (!person) notFound();
   // Refresh prices and stock for links not checked in a day; shows next load.
   after(() => recheckStock(person.id, userId).catch((err) => console.error("Stock re-check failed", err)));
-  const [gifts, format] = await Promise.all([listSavedGifts(person.id, userId), priceFormatter(settings.currency)]);
+  const [gifts, prices] = await Promise.all([listGifts(person.id, userId), pricing(settings.currency)]);
 
   const context = { personId: person.id, currencies, defaultCurrency: settings.currency ?? "USD" };
   const cards: GiftCardData[] = gifts.map((g) => ({
@@ -61,12 +70,23 @@ async function PersonView({ params }: { params: PageProps<"/people/[id]">["param
     title: g.title,
     url: g.url,
     image: giftImageSrc(g),
-    price: format(g.priceAmount, g.priceCurrency),
+    kind: g.kind,
+    status: g.status,
+    price: prices.format(g.priceAmount, g.priceCurrency),
     shipping: shippingTag(g),
     stock: stockTag(g),
+    sortPrice: prices.convert(g.priceAmount, g.priceCurrency),
+    shippingMax: g.shippingDaysMax ?? g.shippingDaysMin,
+    low: g.stockStatus === "low",
+    createdAt: g.createdAt,
+    giftedOn: g.giftedOn,
+    occasionLabel: occasionLabel(g),
+    rating: g.rating,
+    declinedReason: g.declinedReason,
     edit: {
       id: g.id,
       kind: g.kind,
+      status: g.status,
       title: g.title,
       url: g.url ?? "",
       image: g.kind === "link" ? (g.imageUrl ?? "") : "",
@@ -93,7 +113,7 @@ async function PersonView({ params }: { params: PageProps<"/people/[id]">["param
         <h1 className="min-w-0 flex-1 font-display text-3xl break-words text-deep-red">{person.name}</h1>
         <AddGift context={context} />
       </div>
-      <GiftGrid gifts={cards} context={context} />
+      <PersonGifts gifts={cards} context={context} budget={person.budget} />
     </div>
   );
 }

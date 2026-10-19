@@ -1,0 +1,350 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { requestJson } from "@/lib/client";
+import { formatMoney } from "@/lib/money";
+import { Sheet } from "@/app/ui/sheet";
+import { buttonClass, fieldClass, linkButtonClass } from "@/app/ui/styles";
+import { activeFilterCount, applyFilters, byGiftedDate, filterParams, readFilters, type Filters } from "./filters";
+import { GiftCard } from "./gift-card";
+import { GiftSheet, type SheetContext } from "./gift-sheet";
+import type { GiftCardData } from "./gift-types";
+
+type Tab = "ideas" | "gifted" | "declined";
+const TABS: { key: Tab; label: string }[] = [
+  { key: "ideas", label: "Ideas" },
+  { key: "gifted", label: "Gifted" },
+  { key: "declined", label: "Decided against" },
+];
+
+// Tabs, filters and sort all live in the URL. They're applied here in the
+// browser, and the URL is updated without a round trip to the server.
+function useQueryState() {
+  const params = useSearchParams();
+  const pathname = usePathname();
+  function update(changes: Record<string, string | null>, push = false) {
+    const next = new URLSearchParams(params.toString());
+    for (const [key, value] of Object.entries(changes)) {
+      if (value == null || value === "") next.delete(key);
+      else next.set(key, value);
+    }
+    const qs = next.toString();
+    const url = qs ? `${pathname}?${qs}` : pathname;
+    if (push) window.history.pushState(null, "", url);
+    else window.history.replaceState(null, "", url);
+  }
+  return { params, update };
+}
+
+export function PersonGifts({
+  gifts,
+  context,
+  budget,
+}: {
+  gifts: GiftCardData[];
+  context: SheetContext;
+  budget: number | null;
+}) {
+  const { params, update } = useQueryState();
+  const tabParam = params.get("tab");
+  const tab: Tab = tabParam === "gifted" || tabParam === "declined" ? tabParam : "ideas";
+  const filters = readFilters(params);
+
+  const [editing, setEditing] = useState<GiftCardData | null>(null);
+  const [addingPast, setAddingPast] = useState(false);
+  const [planning, setPlanning] = useState(false);
+  const [ticked, setTicked] = useState<Set<string>>(new Set());
+
+  const byStatus = useMemo(
+    () => ({
+      ideas: gifts.filter((g) => g.status === "saved"),
+      gifted: gifts.filter((g) => g.status === "gifted"),
+      declined: gifts.filter((g) => g.status === "declined"),
+    }),
+    [gifts],
+  );
+  const shown =
+    tab === "ideas" ? applyFilters(byStatus.ideas, filters) : tab === "gifted" ? byGiftedDate(byStatus.gifted) : byStatus.declined;
+
+  const setFilters = (f: Filters) => update(filterParams(f));
+  const total = byStatus.ideas.filter((g) => ticked.has(g.id)).reduce((sum, g) => sum + (g.sortPrice ?? 0), 0);
+
+  return (
+    <div className="flex flex-col gap-5">
+      <nav aria-label="Gifts" className="grid grid-cols-3 border border-deep-red">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            aria-current={tab === t.key ? "page" : undefined}
+            onClick={() => update({ tab: t.key === "ideas" ? null : t.key }, true)}
+            className={`px-1 py-2.5 leading-tight ${tab === t.key ? "bg-deep-red text-gold-light" : "text-deep-red"}`}
+          >
+            {t.label} {byStatus[t.key].length}
+          </button>
+        ))}
+      </nav>
+
+      {tab === "ideas" && byStatus.ideas.length > 0 && (
+        <>
+          <div className="flex flex-wrap items-center gap-3">
+            <MobileFilters filters={filters} onChange={setFilters} currency={context.defaultCurrency} matches={shown.length} />
+            <button
+              type="button"
+              aria-pressed={planning}
+              onClick={() => {
+                setPlanning(!planning);
+                setTicked(new Set());
+              }}
+              className={`border border-deep-red px-4 py-2.5 ${planning ? "bg-deep-red text-gold-light" : "text-deep-red"}`}
+            >
+              Plan
+            </button>
+            <BudgetField personId={context.personId} initial={budget} currency={context.defaultCurrency} />
+          </div>
+          <div className="hidden bg-cream/60 p-3 sm:block">
+            <FilterControls filters={filters} onChange={setFilters} currency={context.defaultCurrency} layout="bar" />
+          </div>
+        </>
+      )}
+
+      {tab === "gifted" && (
+        <button type="button" onClick={() => setAddingPast(true)} className={`${buttonClass} self-start`}>
+          Add past gift
+        </button>
+      )}
+
+      {shown.length === 0 ? (
+        <p>
+          {tab === "ideas" ? (byStatus.ideas.length === 0 ? "No gifts yet" : "No matches") : tab === "gifted" ? "Nothing gifted yet" : "Nothing here yet"}
+        </p>
+      ) : (
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {shown.map((gift) => (
+            <GiftCard
+              key={gift.id}
+              gift={gift}
+              onOpen={() => setEditing(gift)}
+              planning={tab === "ideas" && planning}
+              ticked={ticked.has(gift.id)}
+              onTick={(on) => {
+                const next = new Set(ticked);
+                if (on) next.add(gift.id);
+                else next.delete(gift.id);
+                setTicked(next);
+              }}
+            />
+          ))}
+        </ul>
+      )}
+
+      {tab === "ideas" && planning && <PlanTotal total={total} budget={budget} currency={context.defaultCurrency} />}
+
+      <GiftSheet open={!!editing} onClose={() => setEditing(null)} context={context} gift={editing?.edit} />
+      <GiftSheet open={addingPast} onClose={() => setAddingPast(false)} context={context} past />
+    </div>
+  );
+}
+
+// The running total of ticked ideas against the budget.
+function PlanTotal({ total, budget, currency }: { total: number; budget: number | null; currency: string }) {
+  const over = budget != null && total > budget;
+  return (
+    <div
+      role="status"
+      className={`sticky bottom-0 -mx-4 border-t px-4 py-3 text-lg sm:bottom-4 sm:mx-0 sm:border ${
+        over ? "border-deep-red bg-ribbon text-gold-light" : "border-gold-mid bg-cream text-ink"
+      }`}
+    >
+      {formatMoney(total, currency)}
+      {budget != null && ` of ${formatMoney(budget, currency)}`}
+    </div>
+  );
+}
+
+function BudgetField({ personId, initial, currency }: { personId: string; initial: number | null; currency: string }) {
+  const [value, setValue] = useState(initial == null ? "" : String(initial));
+  const [saved, setSaved] = useState(initial);
+  const [error, setError] = useState(false);
+
+  async function save() {
+    const amount = value.trim() === "" ? null : Number(value.replace(/[^\d.]/g, ""));
+    if (amount != null && !Number.isFinite(amount)) {
+      setError(true);
+      return;
+    }
+    if (amount === saved) return;
+    try {
+      await requestJson(`/api/people/${personId}/budget`, { method: "PATCH", body: { amount } });
+      setSaved(amount);
+      setError(false);
+    } catch {
+      setError(true);
+    }
+  }
+
+  return (
+    <label className="flex items-center gap-2">
+      <span>Budget</span>
+      <span className="flex items-center gap-2">
+        <input
+          type="text"
+          inputMode="decimal"
+          autoComplete="off"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onBlur={save}
+          onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()}
+          aria-invalid={error}
+          className={`${fieldClass.replace("w-full", "w-28")} ${error ? "border-deep-red" : ""}`}
+        />
+        <span>{currency}</span>
+      </span>
+    </label>
+  );
+}
+
+function MobileFilters({
+  filters,
+  onChange,
+  currency,
+  matches,
+}: {
+  filters: Filters;
+  onChange: (f: Filters) => void;
+  currency: string;
+  matches: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const count = activeFilterCount(filters);
+  return (
+    <div className="sm:hidden">
+      <button type="button" onClick={() => setOpen(true)} className="border border-deep-red px-4 py-2.5 text-deep-red">
+        Filter{count > 0 ? ` (${count})` : ""}
+      </button>
+      <Sheet open={open} onClose={() => setOpen(false)} label="Filter">
+        <div className="flex flex-col gap-5">
+          <h2 className="font-display text-2xl text-deep-red">Filter</h2>
+          <FilterControls filters={filters} onChange={onChange} currency={currency} layout="sheet" />
+          <div className="flex items-center gap-5">
+            <button type="button" onClick={() => setOpen(false)} className={buttonClass}>
+              Show {matches} {matches === 1 ? "idea" : "ideas"}
+            </button>
+            {count > 0 && (
+              <button
+                type="button"
+                onClick={() => onChange({ ...filters, min: null, max: null, delivery: null, low: false, type: null })}
+                className={linkButtonClass}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+      </Sheet>
+    </div>
+  );
+}
+
+function FilterControls({
+  filters,
+  onChange,
+  currency,
+  layout,
+}: {
+  filters: Filters;
+  onChange: (f: Filters) => void;
+  currency: string;
+  layout: "bar" | "sheet";
+}) {
+  // Typed text, so a half-typed number isn't lost; the URL gets the number.
+  const [min, setMin] = useState(filters.min == null ? "" : String(filters.min));
+  const [max, setMax] = useState(filters.max == null ? "" : String(filters.max));
+  const toAmount = (s: string) => {
+    const n = Number(s.replace(/[^\d.]/g, ""));
+    return s.trim() === "" || !Number.isFinite(n) ? null : n;
+  };
+  // The bar's controls size to their content; the sheet's fill the width.
+  const control = layout === "bar" ? fieldClass.replace("w-full", "w-auto") : fieldClass;
+  const priceBox = layout === "bar" ? fieldClass.replace("w-full", "w-24") : `${fieldClass} min-w-0`;
+  const wrap = layout === "bar" ? "flex flex-wrap items-end gap-3" : "flex flex-col gap-5";
+
+  return (
+    <div className={wrap}>
+      <div className="flex flex-col gap-1">
+        <span id={`price-${layout}`}>Price ({currency})</span>
+        <div role="group" aria-labelledby={`price-${layout}`} className="flex items-center gap-2">
+          <input
+            type="text"
+            inputMode="decimal"
+            aria-label="Minimum price"
+            placeholder="Min"
+            value={min}
+            onChange={(e) => {
+              setMin(e.target.value);
+              onChange({ ...filters, min: toAmount(e.target.value) });
+            }}
+            className={priceBox}
+          />
+          <span aria-hidden>-</span>
+          <input
+            type="text"
+            inputMode="decimal"
+            aria-label="Maximum price"
+            placeholder="Max"
+            value={max}
+            onChange={(e) => {
+              setMax(e.target.value);
+              onChange({ ...filters, max: toAmount(e.target.value) });
+            }}
+            className={priceBox}
+          />
+        </div>
+      </div>
+      <label className="flex flex-col gap-1">
+        <span>Delivery</span>
+        <select
+          value={filters.delivery ?? ""}
+          onChange={(e) => onChange({ ...filters, delivery: (Number(e.target.value) || null) as Filters["delivery"] })}
+          className={control}
+        >
+          <option value="">Any</option>
+          <option value="3">Up to 3 days</option>
+          <option value="7">Up to 7 days</option>
+          <option value="14">Up to 14 days</option>
+        </select>
+      </label>
+      <label className="flex flex-col gap-1">
+        <span>Type</span>
+        <select
+          value={filters.type ?? ""}
+          onChange={(e) => onChange({ ...filters, type: (e.target.value || null) as Filters["type"] })}
+          className={control}
+        >
+          <option value="">All</option>
+          <option value="link">Links</option>
+          <option value="idea">Own ideas</option>
+        </select>
+      </label>
+      <label className="flex flex-col gap-1">
+        <span>Sort</span>
+        <select value={filters.sort} onChange={(e) => onChange({ ...filters, sort: e.target.value as Filters["sort"] })} className={control}>
+          <option value="newest">Newest</option>
+          <option value="price-asc">Price low to high</option>
+          <option value="price-desc">Price high to low</option>
+          <option value="fastest">Fastest delivery</option>
+        </select>
+      </label>
+      <label className="flex cursor-pointer items-center gap-2 py-2">
+        <input
+          type="checkbox"
+          checked={filters.low}
+          onChange={(e) => onChange({ ...filters, low: e.target.checked })}
+          className="size-5 accent-ribbon"
+        />
+        <span>Low stock only</span>
+      </label>
+    </div>
+  );
+}

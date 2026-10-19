@@ -33,6 +33,15 @@ const GiftSchema = z.object({
   stockCount: z.number().int().min(0).max(100_000).nullish().transform((n) => n ?? null),
   checked: z.boolean().optional().default(false),
   removePhoto: z.boolean().optional().default(false),
+  // "Add past gift": saved straight as gifted.
+  past: z
+    .object({
+      occasion: optionalText(80),
+      giftedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((s) => !Number.isNaN(Date.parse(s))),
+      rating: z.number().int().min(1).max(3).nullish().transform((n) => n ?? null),
+    })
+    .nullish()
+    .transform((p) => p ?? null),
 });
 
 export type GiftForm = z.infer<typeof GiftSchema> & { photo: File | null };
@@ -53,6 +62,7 @@ export async function readGiftForm(request: Request): Promise<GiftForm | string>
     if (field === "title") return "Add a title.";
     if (field === "url" || field === "image") return "That link doesn't look right.";
     if (field === "price") return "That price doesn't look right.";
+    if (field === "past") return "Check the date.";
     return "Some details don't look right.";
   }
   if (parsed.data.kind === "link" && !parsed.data.url) return "Add the link.";

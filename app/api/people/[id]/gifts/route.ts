@@ -20,12 +20,12 @@ export async function POST(request: Request, ctx: RouteContext<"/api/people/[id]
 
     const id = randomUUID();
     const { fields } = await giftFields(userId, id, form.kind, form, null);
-    if (!(await createGift(id, personId, userId, fields))) {
+    if (!(await createGift(id, personId, userId, fields, form.past))) {
       await removePhoto(fields.imageUrl);
       return fail("Person not found.", 404);
     }
     // Delivery times for links that didn't come with them, after responding.
-    if (fields.kind === "link" && fields.shippingDaysMin == null) {
+    if (fields.kind === "link" && fields.shippingDaysMin == null && !form.past) {
       after(() => fillShipping(id, userId).catch((err) => console.error("Shipping lookup failed", err)));
     }
     return NextResponse.json({ id }, { status: 201 });

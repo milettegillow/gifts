@@ -3,10 +3,12 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { requestJson, resizePhoto } from "@/lib/client";
+import { localToday, requestJson, resizePhoto } from "@/lib/client";
 import { Sheet } from "@/app/ui/sheet";
 import { buttonClass, fieldClass, linkButtonClass } from "@/app/ui/styles";
 import { PRESENT_IMAGE, type GiftEdit, type StockStatus } from "./gift-types";
+import { OccasionFields } from "./occasion-fields";
+import { Stars } from "./stars";
 
 type Kind = "link" | "idea";
 
@@ -29,15 +31,18 @@ export function GiftSheet({
   onClose,
   context,
   gift,
+  past = false,
 }: {
   open: boolean;
   onClose: () => void;
   context: SheetContext;
   gift?: GiftEdit;
+  // "Add past gift": also asks for the occasion, date and a rating, and saves as gifted.
+  past?: boolean;
 }) {
   return (
-    <Sheet open={open} onClose={onClose} label={gift ? "Edit gift" : "Add a gift"}>
-      <GiftForm onClose={onClose} context={context} gift={gift} />
+    <Sheet open={open} onClose={onClose} label={gift ? "Edit gift" : past ? "Add past gift" : "Add a gift"}>
+      <GiftForm onClose={onClose} context={context} gift={gift} past={past} />
     </Sheet>
   );
 }
@@ -55,7 +60,17 @@ function priceText(n: number | null) {
   return n == null ? "" : String(Math.round(n * 100) / 100);
 }
 
-function GiftForm({ onClose, context, gift }: { onClose: () => void; context: SheetContext; gift?: GiftEdit }) {
+function GiftForm({
+  onClose,
+  context,
+  gift,
+  past,
+}: {
+  onClose: () => void;
+  context: SheetContext;
+  gift?: GiftEdit;
+  past: boolean;
+}) {
   const router = useRouter();
   const editing = !!gift;
   const [kind, setKind] = useState<Kind>(gift?.kind ?? "link");
@@ -85,6 +100,13 @@ function GiftForm({ onClose, context, gift }: { onClose: () => void; context: Sh
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
+  // Gifted details (past gifts, and "Mark as gifted").
+  const [occasion, setOccasion] = useState("");
+  const [date, setDate] = useState(localToday);
+  const [rating, setRating] = useState<number | null>(null);
+  // "Mark as gifted" and "Decided against" are a step of their own.
+  const [step, setStep] = useState<"form" | "gifted" | "declined">("form");
+  const [reason, setReason] = useState("");
 
   useEffect(() => () => {
     if (preview) URL.revokeObjectURL(preview);
@@ -162,6 +184,7 @@ function GiftForm({ onClose, context, gift }: { onClose: () => void; context: Sh
         stockCount: kind === "link" ? stock.count : null,
         checked,
         removePhoto: removed && !photo,
+        past: past ? { occasion: occasion.trim() || null, giftedOn: date, rating } : null,
       }),
     );
     if (kind === "idea" && photo) form.set("photo", new File([photo], "photo.jpg", { type: "image/jpeg" }));
@@ -188,6 +211,70 @@ function GiftForm({ onClose, context, gift }: { onClose: () => void; context: Sh
       setError(err instanceof Error ? err.message : "Couldn't delete. Try again.");
       setBusy(false);
     }
+  }
+
+  async function changeStatus(body: Record<string, unknown>) {
+    if (!gift || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await requestJson(`/api/gifts/${gift.id}/status`, { method: "PATCH", body });
+      router.refresh();
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't save. Try again.");
+      setBusy(false);
+    }
+  }
+
+  if (gift && step === "gifted") {
+    return (
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void changeStatus({ status: "gifted", occasion: occasion.trim() || null, giftedOn: date });
+        }}
+        className="flex flex-col gap-5"
+      >
+        <h2 className="font-display text-2xl text-deep-red">Mark as gifted</h2>
+        <OccasionFields occasion={occasion} onOccasion={setOccasion} date={date} onDate={setDate} />
+        {error && <p role="alert" className="text-deep-red">{error}</p>}
+        <div className="flex items-center gap-5">
+          <button type="submit" disabled={busy || !date} className={buttonClass}>
+            {busy ? "Saving…" : "Save"}
+          </button>
+          <button type="button" onClick={() => setStep("form")} disabled={busy} className={linkButtonClass}>
+            Back
+          </button>
+        </div>
+      </form>
+    );
+  }
+
+  if (gift && step === "declined") {
+    return (
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void changeStatus({ status: "declined", reason: reason.trim() || null });
+        }}
+        className="flex flex-col gap-5"
+      >
+        <h2 className="font-display text-2xl text-deep-red">Decided against</h2>
+        <Field label="Reason" htmlFor="gift-reason">
+          <textarea id="gift-reason" rows={3} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} className={`${fieldClass} resize-y`} />
+        </Field>
+        {error && <p role="alert" className="text-deep-red">{error}</p>}
+        <div className="flex items-center gap-5">
+          <button type="submit" disabled={busy} className={buttonClass}>
+            {busy ? "Saving…" : "Save"}
+          </button>
+          <button type="button" onClick={() => setStep("form")} disabled={busy} className={linkButtonClass}>
+            Back
+          </button>
+        </div>
+      </form>
+    );
   }
 
   if (gift && confirming) {
@@ -238,7 +325,7 @@ function GiftForm({ onClose, context, gift }: { onClose: () => void; context: Sh
 
   return (
     <form onSubmit={save} className="flex flex-col gap-5">
-      <h2 className="font-display text-2xl text-deep-red">{editing ? "Edit gift" : "Add a gift"}</h2>
+      <h2 className="font-display text-2xl text-deep-red">{editing ? "Edit gift" : past ? "Add past gift" : "Add a gift"}</h2>
 
       {!editing && (
         <div role="radiogroup" aria-label="Kind of gift" className="grid grid-cols-2 border border-deep-red">
@@ -354,6 +441,16 @@ function GiftForm({ onClose, context, gift }: { onClose: () => void; context: Sh
         </>
       )}
 
+      {past && (kind === "idea" || showFields) && (
+        <>
+          <OccasionFields occasion={occasion} onOccasion={setOccasion} date={date} onDate={setDate} />
+          <div className="flex flex-col gap-2">
+            <span>Rating</span>
+            <Stars value={rating} onChange={setRating} />
+          </div>
+        </>
+      )}
+
       {error && <p role="alert" className="text-deep-red">{error}</p>}
 
       {(kind === "idea" || showFields) && (
@@ -372,6 +469,25 @@ function GiftForm({ onClose, context, gift }: { onClose: () => void; context: Sh
               className="ml-auto text-deep-red underline disabled:opacity-60"
             >
               Delete
+            </button>
+          )}
+        </div>
+      )}
+
+      {gift && (
+        <div className="flex flex-wrap items-center gap-5 border-t border-gold-mid pt-5">
+          {gift.status === "saved" ? (
+            <>
+              <button type="button" onClick={() => setStep("gifted")} disabled={busy} className={buttonClass}>
+                Mark as gifted
+              </button>
+              <button type="button" onClick={() => setStep("declined")} disabled={busy} className={linkButtonClass}>
+                Decided against
+              </button>
+            </>
+          ) : (
+            <button type="button" onClick={() => changeStatus({ status: "saved" })} disabled={busy} className={linkButtonClass}>
+              Move back to ideas
             </button>
           )}
         </div>

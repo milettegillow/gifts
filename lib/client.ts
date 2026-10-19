@@ -1,5 +1,10 @@
 // Browser-side helpers shared by client components.
 
+// The browser's local date as YYYY-MM-DD, so "today" matches the user's calendar.
+export function localToday(): string {
+  return new Date().toLocaleDateString("en-CA");
+}
+
 export async function requestJson<T>(
   url: string,
   init: { method?: string; body?: unknown } = {},
