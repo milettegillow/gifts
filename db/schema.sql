@@ -69,3 +69,11 @@ create table if not exists person_insights (
 create index if not exists people_user_id_idx on people (user_id);
 create index if not exists gifts_user_id_idx on gifts (user_id);
 create index if not exists gifts_person_id_idx on gifts (person_id);
+
+-- Claude calls per user per day, for the daily cap (lib/claude.ts).
+create table if not exists claude_usage (
+  user_id text not null references users (clerk_id) on delete cascade,
+  day date not null,
+  count int not null default 0,
+  primary key (user_id, day)
+);

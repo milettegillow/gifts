@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { deleteGift, getGift, updateGift } from "@/lib/gifts";
 import { errorResponse, fail } from "@/lib/http";
 import { removePhoto } from "@/lib/photos";
+import { fillShipping } from "@/lib/shipping";
 import { giftFields, readGiftForm } from "../form";
 
 export async function PATCH(request: Request, ctx: RouteContext<"/api/gifts/[id]">) {
@@ -22,6 +23,9 @@ export async function PATCH(request: Request, ctx: RouteContext<"/api/gifts/[id]
       return fail("Gift not found.", 404);
     }
     await removePhoto(replaced);
+    if (fields.kind === "link" && fields.shippingDaysMin == null) {
+      after(() => fillShipping(id, userId).catch((err) => console.error("Shipping lookup failed", err)));
+    }
     return NextResponse.json({ id });
   } catch (err) {
     return errorResponse("Couldn't save your changes", err);

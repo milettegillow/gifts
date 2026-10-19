@@ -1,10 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createGift } from "@/lib/gifts";
 import { errorResponse, fail } from "@/lib/http";
 import { getPerson } from "@/lib/people";
 import { removePhoto } from "@/lib/photos";
+import { fillShipping } from "@/lib/shipping";
 import { giftFields, readGiftForm } from "@/app/api/gifts/form";
 
 // Saves a gift to one of the user's people.
@@ -22,6 +23,10 @@ export async function POST(request: Request, ctx: RouteContext<"/api/people/[id]
     if (!(await createGift(id, personId, userId, fields))) {
       await removePhoto(fields.imageUrl);
       return fail("Person not found.", 404);
+    }
+    // Delivery times for links that didn't come with them, after responding.
+    if (fields.kind === "link" && fields.shippingDaysMin == null) {
+      after(() => fillShipping(id, userId).catch((err) => console.error("Shipping lookup failed", err)));
     }
     return NextResponse.json({ id }, { status: 201 });
   } catch (err) {

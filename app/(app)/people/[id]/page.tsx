@@ -1,11 +1,13 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { after } from "next/server";
 import { supportedCurrencies } from "@/lib/currencies";
 import { giftImageSrc, listSavedGifts, type GiftRow } from "@/lib/gifts";
 import { getPerson } from "@/lib/people";
 import { isStoredImage, isVideoStill } from "@/lib/photos";
 import { priceFormatter } from "@/lib/rates";
+import { recheckStock } from "@/lib/stock";
 import { getUserSettings, requireUser } from "@/lib/users";
 import { Avatar } from "@/app/ui/avatar";
 import { EditPerson } from "./edit-person";
@@ -49,6 +51,8 @@ async function PersonView({ params }: { params: PageProps<"/people/[id]">["param
     supportedCurrencies(),
   ]);
   if (!person) notFound();
+  // Refresh prices and stock for links not checked in a day; shows next load.
+  after(() => recheckStock(person.id, userId).catch((err) => console.error("Stock re-check failed", err)));
   const [gifts, format] = await Promise.all([listSavedGifts(person.id, userId), priceFormatter(settings.currency)]);
 
   const context = { personId: person.id, currencies, defaultCurrency: settings.currency ?? "USD" };
