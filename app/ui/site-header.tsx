@@ -1,4 +1,8 @@
+import { Suspense } from "react";
 import Link from "next/link";
+import { supportedCurrencies } from "@/lib/currencies";
+import { getUserSettings, requireUser } from "@/lib/users";
+import { CurrencyPicker } from "./currency-picker";
 import { geometry } from "@/lib/ribbon";
 import { RibbonDefs, ribbonIds } from "./ribbon-defs";
 
@@ -21,7 +25,9 @@ export function SiteHeader() {
         <Link href="/" className="font-display text-[30px] leading-none text-deep-red sm:text-4xl">
           Giftbook
         </Link>
-        <span className="bg-deep-red px-3 py-1 text-gold-light">GBP</span>
+        <Suspense>
+          <HeaderCurrency />
+        </Suspense>
       </div>
       <div className="relative">
         <svg
@@ -52,6 +58,15 @@ export function SiteHeader() {
       </div>
     </header>
   );
+}
+
+// The user's currency, once onboarding has set it.
+async function HeaderCurrency() {
+  const userId = await requireUser();
+  const { currency } = await getUserSettings(userId);
+  if (!currency) return null;
+  const options = await supportedCurrencies();
+  return <CurrencyPicker value={currency} options={options.includes(currency) ? options : [...options, currency].sort()} />;
 }
 
 // The wrap's bow in its tied pose, small, with the knot on the ribbon line.
