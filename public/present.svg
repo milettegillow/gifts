@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <defs>
+    <linearGradient id="gold" gradientUnits="userSpaceOnUse" x1="44" y1="44" x2="356" y2="356">
+      <stop offset="0" stop-color="#a8782a"/><stop offset=".3" stop-color="#f3d68a"/><stop offset=".5" stop-color="#c9973e"/><stop offset=".72" stop-color="#f7e3a6"/><stop offset="1" stop-color="#a8782a"/>
+    </linearGradient>
+    <linearGradient id="sat" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="110" y2="70" spreadMethod="reflect" gradientTransform="translate(200 200)">
+      <stop offset="0" stop-color="#0b0b0d"/><stop offset=".55" stop-color="#18181c"/><stop offset=".82" stop-color="#34343a"/><stop offset="1" stop-color="#4e4e56"/>
+    </linearGradient>
+    <linearGradient id="shL" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-opacity=".12"/><stop offset=".6" stop-opacity="0"/><stop offset="1" stop-opacity=".45"/></linearGradient>
+    <linearGradient id="shR" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-opacity=".12"/><stop offset=".6" stop-opacity="0"/><stop offset="1" stop-opacity=".45"/></linearGradient>
+    <linearGradient id="shK" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-opacity=".4"/><stop offset=".5" stop-opacity="0"/><stop offset="1" stop-opacity=".4"/></linearGradient>
+    <filter id="ds"><feDropShadow dx="1" dy="3" stdDeviation="2.5" flood-color="#3d1a00" flood-opacity=".3"/></filter>
+    <filter id="box" x="-10%" y="-10%" width="125%" height="130%"><feDropShadow dx="2" dy="6" stdDeviation="6" flood-color="#3d1a00" flood-opacity=".28"/></filter>
+    <clipPath id="lid"><rect x="44" y="44" width="312" height="312"/></clipPath>
+  </defs>
+  <rect width="400" height="400" fill="#fffaf0"/>
+  <rect x="44" y="44" width="312" height="312" fill="url(#gold)" filter="url(#box)"/>
+  <g filter="url(#ds)">
+    <path d="M200,44 L200,356" stroke="url(#sat)" stroke-width="24" clip-path="url(#lid)"/>
+    <path d="M44.0,200.0 L188.0,200.0 Q198.0,200.0 193.6,209.0 L154.2,289.9" fill="none" stroke="url(#sat)" stroke-width="24" stroke-linejoin="round"/>
+    <path d="M143.4,284.6 L137.7,296.3 L153.7,290.8 L159.2,306.8 L164.9,295.1Z" fill="url(#sat)"/>
+    <path d="M356.0,200.0 L212.0,200.0 Q202.0,200.0 206.4,209.0 L245.8,289.9" fill="none" stroke="url(#sat)" stroke-width="24" stroke-linejoin="round"/>
+    <path d="M235.1,295.1 L240.8,306.8 L246.3,290.8 L262.3,296.3 L256.6,284.6Z" fill="url(#sat)"/>
+    <path d="M191.0,189.0 C163.0,166.0 124.0,158.0 118.0,174.8 C112.0,188.0 114.0,206.0 124.0,211.0 C152.0,215.0 167.0,215.0 191.0,211.0Z" fill="url(#sat)"/>
+    <path d="M191.0,189.0 C163.0,166.0 124.0,158.0 118.0,174.8 C112.0,188.0 114.0,206.0 124.0,211.0 C152.0,215.0 167.0,215.0 191.0,211.0Z" fill="url(#shL)"/>
+    <path d="M209.0,189.0 C237.0,166.0 276.0,158.0 282.0,174.8 C288.0,188.0 286.0,206.0 276.0,211.0 C248.0,215.0 233.0,215.0 209.0,211.0Z" fill="url(#sat)"/>
+    <path d="M209.0,189.0 C237.0,166.0 276.0,158.0 282.0,174.8 C288.0,188.0 286.0,206.0 276.0,211.0 C248.0,215.0 233.0,215.0 209.0,211.0Z" fill="url(#shR)"/>
+    <rect x="186" y="184" width="28" height="32" rx="7" fill="url(#sat)"/>
+    <rect x="186" y="184" width="28" height="32" rx="7" fill="url(#shK)"/>
+  </g>
+</svg>
