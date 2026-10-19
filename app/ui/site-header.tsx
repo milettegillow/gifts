@@ -40,10 +40,10 @@ export function SiteHeader() {
               y2="70"
               spreadMethod="reflect"
             >
-              <stop offset="0" stopColor="#8a1324" />
-              <stop offset=".55" stopColor="#a3182c" />
-              <stop offset=".82" stopColor="#c93449" />
-              <stop offset="1" stopColor="#d9475b" />
+              <stop offset="0" stopColor="#0b0b0d" />
+              <stop offset=".55" stopColor="#18181c" />
+              <stop offset=".82" stopColor="#34343a" />
+              <stop offset="1" stopColor="#4e4e56" />
             </linearGradient>
           </defs>
           <rect width="100%" height="7" fill="url(#hdr-line)" />

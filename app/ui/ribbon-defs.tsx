@@ -39,25 +39,25 @@ export function RibbonDefs({
         y2="70"
         spreadMethod="reflect"
       >
-        <stop offset="0" stopColor="#8a1324" />
-        <stop offset=".55" stopColor="#a3182c" />
-        <stop offset=".82" stopColor="#c93449" />
-        <stop offset="1" stopColor="#d9475b" />
+        <stop offset="0" stopColor="#0b0b0d" />
+        <stop offset=".55" stopColor="#18181c" />
+        <stop offset=".82" stopColor="#34343a" />
+        <stop offset="1" stopColor="#4e4e56" />
       </linearGradient>
       <linearGradient id={ids.shL} x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stopColor="#3a0008" stopOpacity=".12" />
-        <stop offset=".6" stopColor="#3a0008" stopOpacity="0" />
-        <stop offset="1" stopColor="#3a0008" stopOpacity=".45" />
+        <stop offset="0" stopColor="#000000" stopOpacity=".12" />
+        <stop offset=".6" stopColor="#000000" stopOpacity="0" />
+        <stop offset="1" stopColor="#000000" stopOpacity=".45" />
       </linearGradient>
       <linearGradient id={ids.shR} x1="1" y1="0" x2="0" y2="0">
-        <stop offset="0" stopColor="#3a0008" stopOpacity=".12" />
-        <stop offset=".6" stopColor="#3a0008" stopOpacity="0" />
-        <stop offset="1" stopColor="#3a0008" stopOpacity=".45" />
+        <stop offset="0" stopColor="#000000" stopOpacity=".12" />
+        <stop offset=".6" stopColor="#000000" stopOpacity="0" />
+        <stop offset="1" stopColor="#000000" stopOpacity=".45" />
       </linearGradient>
       <linearGradient id={ids.shK} x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stopColor="#3a0008" stopOpacity=".4" />
-        <stop offset=".5" stopColor="#3a0008" stopOpacity="0" />
-        <stop offset="1" stopColor="#3a0008" stopOpacity=".4" />
+        <stop offset="0" stopColor="#000000" stopOpacity=".4" />
+        <stop offset=".5" stopColor="#000000" stopOpacity="0" />
+        <stop offset="1" stopColor="#000000" stopOpacity=".4" />
       </linearGradient>
       <filter id={ids.ds}>
         <feDropShadow dx="1" dy="3" stdDeviation="2.5" floodColor="#3d1a00" floodOpacity=".3" />
