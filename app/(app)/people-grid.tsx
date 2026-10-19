@@ -38,7 +38,7 @@ export function PeopleGrid({ people }: { people: Person[] }) {
           >
             <span
               aria-hidden
-              className="flex size-[72px] items-center justify-center rounded-full border-2 border-dashed border-ink text-4xl leading-none text-ink sm:size-24"
+              className="box-border flex size-[72px] shrink-0 items-center justify-center rounded-full border-2 border-dashed border-ink text-4xl leading-none text-ink sm:size-24"
             >
               +
             </span>

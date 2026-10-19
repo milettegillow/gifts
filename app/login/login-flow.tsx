@@ -153,7 +153,7 @@ export function LoginFlow() {
 
   return (
     <form onSubmit={submit} className="flex w-[96px] flex-col gap-[8px]">
-      <h1 className="font-display text-[14px] leading-[16px] text-ink">Giftbook</h1>
+      <h1 className="wordmark font-display text-[14px] leading-[16px] text-ink">Giftbook</h1>
       <label className="gift-tag-input-box block">
         <span className="sr-only">Email</span>
         <input

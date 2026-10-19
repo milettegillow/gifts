@@ -63,6 +63,12 @@ body::before {
   }
 }
 
+/* "Giftbook": no ligatures, so nothing joins up through "ift". */
+.wordmark {
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "dlig" 0;
+}
+
 /* Headings and the wordmark are always Playfair Display 700. */
 .font-display {
   font-weight: 700;
