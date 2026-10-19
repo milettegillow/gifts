@@ -83,9 +83,10 @@ function GiftForm({
   // Link fields
   const [image, setImage] = useState(gift?.image ?? "");
   const [shipping, setShipping] = useState(gift?.shipping ?? "");
-  const [stock, setStock] = useState<{ status: StockStatus | null; count: number | null }>({
+  const [stock, setStock] = useState<{ status: StockStatus | null; count: number | null; manual: boolean }>({
     status: gift?.stockStatus ?? null,
     count: gift?.stockCount ?? null,
+    manual: gift?.stockManual ?? false,
   });
   const [showFields, setShowFields] = useState(editing);
   const [fetching, setFetching] = useState(false);
@@ -128,7 +129,7 @@ function GiftForm({
       setPrice(priceText(r.price));
       setCurrency(r.currency ?? context.defaultCurrency);
       setShipping(r.shippingText ?? "");
-      setStock({ status: r.stockStatus, count: r.stockCount });
+      setStock({ status: r.stockStatus, count: r.stockCount, manual: false });
       setChecked(true);
     } catch {
       setFetchFailed(true);
@@ -137,7 +138,7 @@ function GiftForm({
         setImage("");
         setPrice("");
         setShipping("");
-        setStock({ status: null, count: null });
+        setStock({ status: null, count: null, manual: false });
       }
     } finally {
       setShowFields(true);
@@ -182,6 +183,7 @@ function GiftForm({
         notes: kind === "idea" ? notes.trim() || null : null,
         stockStatus: kind === "link" ? stock.status : null,
         stockCount: kind === "link" ? stock.count : null,
+        stockManual: kind === "link" && stock.manual,
         checked,
         removePhoto: removed && !photo,
         past: past ? { occasion: occasion.trim() || null, giftedOn: date, rating } : null,
@@ -392,6 +394,24 @@ function GiftForm({
               {priceRow("Price")}
               <Field label="Delivery" htmlFor="gift-shipping">
                 <input id="gift-shipping" type="text" maxLength={200} value={shipping} onChange={(e) => setShipping(e.target.value)} className={fieldClass} />
+              </Field>
+              <Field label="Stock" htmlFor="gift-stock">
+                <select
+                  id="gift-stock"
+                  value={stock.status ?? ""}
+                  onChange={(e) => {
+                    const status = (e.target.value || null) as StockStatus | null;
+                    // Picked by hand: the daily re-check won't change it.
+                    setStock({ status, count: status === "low" ? stock.count : null, manual: true });
+                  }}
+                  className={fieldClass}
+                >
+                  <option value="in_stock">In stock</option>
+                  <option value="low">Low</option>
+                  <option value="out">Out of stock</option>
+                  <option value="unavailable">No longer available</option>
+                  <option value="">Unknown</option>
+                </select>
               </Field>
             </>
           )}

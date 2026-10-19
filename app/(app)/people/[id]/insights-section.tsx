@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { requestJson } from "@/lib/client";
 import { linkButtonClass } from "@/app/ui/styles";
@@ -13,6 +13,36 @@ export type InsightsData = {
   refreshing: boolean;
   expectedHash: string;
 };
+
+// "Where to look" starts collapsed; whether it's open is remembered per browser.
+const OPEN_KEY = "giftbook:where-to-look";
+const OPEN_EVENT = "giftbook:where-to-look";
+
+function subscribeOpen(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  window.addEventListener(OPEN_EVENT, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(OPEN_EVENT, onChange);
+  };
+}
+
+function readOpen(): boolean {
+  try {
+    return localStorage.getItem(OPEN_KEY) === "open";
+  } catch {
+    return false;
+  }
+}
+
+function writeOpen(open: boolean) {
+  try {
+    localStorage.setItem(OPEN_KEY, open ? "open" : "closed");
+  } catch {
+    // storage unavailable; it just won't be remembered
+  }
+  window.dispatchEvent(new Event(OPEN_EVENT));
+}
 
 // "What they like" and "Where to look", above the tabs.
 export function InsightsSection({
@@ -67,19 +97,27 @@ export function InsightsSection({
     }
   }
 
+  const lookOpen = useSyncExternalStore(subscribeOpen, readOpen, () => false);
   const { themes, suggestions } = insights;
-  const empty = themes.length === 0 && suggestions.length === 0;
 
   return (
     <section aria-label="What they like" className="flex flex-col gap-5">
-      <div className="flex items-baseline justify-between gap-4">
-        <h2 className="font-display text-2xl text-ink">What they like</h2>
-        <button type="button" onClick={refresh} disabled={refreshing} className={linkButtonClass}>
-          {refreshing ? "Refreshing…" : "Refresh"}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <h2 className="font-display text-2xl text-ink">What they like</h2>
+          {refreshing && (
+            <span
+              role="status"
+              aria-label="Refreshing"
+              className="block size-4 animate-spin rounded-full border-2 border-ink border-t-transparent motion-reduce:animate-none"
+            />
+          )}
+        </div>
+        <button type="button" onClick={refresh} disabled={refreshing} className={`${linkButtonClass} disabled:opacity-100`}>
+          Refresh
         </button>
       </div>
       {error && <p role="alert" className="text-ink">{error}</p>}
-      {empty && refreshing && <p>Looking for themes…</p>}
 
       {themes.length > 0 && (
         <ul className="flex flex-wrap gap-2">
@@ -103,8 +141,25 @@ export function InsightsSection({
 
       {suggestions.length > 0 && (
         <>
-          <h2 className="font-display text-2xl text-ink">Where to look</h2>
-          <ul className="flex flex-col gap-4">
+          <h2 className="font-display text-2xl text-ink">
+            <button
+              type="button"
+              aria-expanded={lookOpen}
+              aria-controls="where-to-look"
+              onClick={() => writeOpen(!lookOpen)}
+              className="inline-flex min-h-11 items-center gap-3 hover:underline focus-visible:underline"
+            >
+              Where to look
+              <svg
+                aria-hidden
+                viewBox="0 0 12 8"
+                className={`h-2 w-3 fill-none stroke-ink stroke-2 transition-transform motion-reduce:transition-none ${lookOpen ? "rotate-180" : ""}`}
+              >
+                <path d="M1 1.5l5 5 5-5" />
+              </svg>
+            </button>
+          </h2>
+          <ul id="where-to-look" hidden={!lookOpen} className="flex flex-col gap-4">
             {suggestions.map((s) => (
               <li key={s.name} className="flex flex-col gap-1">
                 <a

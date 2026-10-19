@@ -95,3 +95,7 @@ create table if not exists notes (
 );
 
 create index if not exists notes_person_id_idx on notes (person_id);
+
+-- Set when someone picks a gift's stock by hand; the daily re-check then
+-- leaves stock alone (lib/stock.ts).
+alter table gifts add column if not exists stock_manual boolean not null default false;

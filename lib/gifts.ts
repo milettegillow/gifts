@@ -23,6 +23,8 @@ export type GiftRow = {
   shippingDaysMax: number | null;
   stockStatus: StockStatus | null;
   stockCount: number | null;
+  // Stock picked by hand; the daily re-check leaves it alone.
+  stockManual: boolean;
   notes: string | null;
   status: GiftStatus;
   occasion: string | null;
@@ -57,6 +59,7 @@ function toGift(row: Record<string, unknown>): GiftRow {
     shippingDaysMax: num(row.shipping_days_max),
     stockStatus: (row.stock_status as StockStatus | null) ?? null,
     stockCount: num(row.stock_count),
+    stockManual: row.stock_manual === true,
     notes: (row.notes as string | null) ?? null,
     status: row.status as GiftStatus,
     occasion: (row.occasion as string | null) ?? null,
@@ -104,13 +107,13 @@ export async function createGift(
   const rows = await sql`
     insert into gifts (
       id, person_id, user_id, kind, title, url, image_url, price_amount, price_currency,
-      shipping_text, shipping_days_min, shipping_days_max, stock_status, stock_count, notes,
+      shipping_text, shipping_days_min, shipping_days_max, stock_status, stock_count, stock_manual, notes,
       last_checked_at, status, occasion, gifted_on, rating
     )
     select
       ${id}, p.id, p.user_id, ${g.kind}, ${g.title}, ${g.url}, ${g.imageUrl}, ${g.priceAmount},
       ${g.priceCurrency}, ${g.shippingText}, ${g.shippingDaysMin}, ${g.shippingDaysMax},
-      ${g.stockStatus}, ${g.stockCount}, ${g.notes}, ${g.checked ? new Date() : null},
+      ${g.stockStatus}, ${g.stockCount}, ${g.stockManual}, ${g.notes}, ${g.checked ? new Date() : null},
       ${past ? "gifted" : "saved"}, ${past?.occasion ?? null}, ${past?.giftedOn ?? null}, ${past?.rating ?? null}
     from people p
     where p.id = ${personId} and p.user_id = ${userId}
@@ -126,7 +129,7 @@ export async function updateGift(id: string, userId: string, g: GiftFields): Pro
       price_amount = ${g.priceAmount}, price_currency = ${g.priceCurrency},
       shipping_text = ${g.shippingText}, shipping_days_min = ${g.shippingDaysMin},
       shipping_days_max = ${g.shippingDaysMax}, stock_status = ${g.stockStatus},
-      stock_count = ${g.stockCount}, notes = ${g.notes},
+      stock_count = ${g.stockCount}, stock_manual = ${g.stockManual}, notes = ${g.notes},
       last_checked_at = case when ${g.checked} then now() else last_checked_at end
     where id = ${id} and user_id = ${userId}
     returning id

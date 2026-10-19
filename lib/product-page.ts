@@ -125,21 +125,32 @@ function isType(o: Record<string, unknown>, name: string) {
 
 type Offer = { price: number | null; currency: string | null; stock: StockStatus | null };
 
-function readOffer(offers: unknown): Offer {
-  for (const o of walk(offers)) {
-    const spec = (o.priceSpecification ?? null) as Record<string, unknown> | Record<string, unknown>[] | null;
-    const specOne = Array.isArray(spec) ? spec[0] : spec;
-    const price = parsePrice(o.price ?? o.lowPrice ?? specOne?.price);
-    if (price != null) {
-      return {
-        price,
-        currency: currencyCode(o.priceCurrency ?? specOne?.priceCurrency),
-        stock: availability(o.availability),
-      };
+// The product's stock across all its offers and variants: in stock if ANY
+// offer is in stock (or limited), out or unavailable only if every offer
+// that says anything agrees. Null if no offer says.
+export function combinedStock(statuses: (StockStatus | null)[]): StockStatus | null {
+  const known = statuses.filter((s): s is StockStatus => s != null);
+  if (known.length === 0) return null;
+  if (known.includes("in_stock")) return "in_stock";
+  if (known.includes("low")) return "low";
+  return known.every((s) => s === "unavailable") ? "unavailable" : "out";
+}
+
+function readOffer(offers: unknown[]): Offer {
+  let price: number | null = null;
+  let currency: string | null = null;
+  const stock: (StockStatus | null)[] = [];
+  for (const group of offers) {
+    for (const o of walk(group)) {
+      if (o.availability !== undefined) stock.push(availability(o.availability));
+      if (price != null) continue;
+      const spec = (o.priceSpecification ?? null) as Record<string, unknown> | Record<string, unknown>[] | null;
+      const specOne = Array.isArray(spec) ? spec[0] : spec;
+      price = parsePrice(o.price ?? o.lowPrice ?? specOne?.price);
+      if (price != null) currency = currencyCode(o.priceCurrency ?? specOne?.priceCurrency);
     }
   }
-  const any = [...walk(offers)][0];
-  return { price: null, currency: null, stock: any ? availability(any.availability) : null };
+  return { price, currency, stock: combinedStock(stock) };
 }
 
 function jsonLdProduct(html: string) {
@@ -152,8 +163,10 @@ function jsonLdProduct(html: string) {
     }
     for (const o of walk(data)) {
       if (!isType(o, "Product") && !isType(o, "ProductGroup")) continue;
-      const variant = Array.isArray(o.hasVariant) ? (o.hasVariant[0] as Record<string, unknown>) : null;
-      const offer = readOffer(o.offers ?? variant?.offers);
+      // The main product's own offers, and every variant's.
+      const variants = Array.isArray(o.hasVariant) ? (o.hasVariant as Record<string, unknown>[]) : [];
+      const variant = variants[0] ?? null;
+      const offer = readOffer([o.offers, ...variants.map((v) => v?.offers)].filter((x) => x != null));
       return {
         title: clean(o.name),
         image: firstImage(o.image ?? variant?.image),
@@ -175,10 +188,12 @@ export function visibleText(html: string): string {
     .trim();
 }
 
-export function parseLowStock(text: string): { count: number | null } | null {
+// Page text can only ever say "low", and only with a number ("only 3 left").
+// It never says out of stock: pages carry that wording for other products,
+// sizes, recommendations and hidden templates.
+export function parseLowStock(text: string): { count: number } | null {
   const only = text.match(/\bonly\s+(\d{1,3})\s+(?:left|remaining)\b/i) ?? text.match(/\b(\d{1,3})\s+left\s+in\s+stock\b/i);
-  if (only) return { count: Number(only[1]) };
-  return /\blow\s+(?:in\s+)?stock\b/i.test(text) ? { count: null } : null;
+  return only ? { count: Number(only[1]) } : null;
 }
 
 function toDays(n: number, unit: string): number {
@@ -257,6 +272,7 @@ export function readProductPage(html: string, pageUrl: string): ProductInfo {
     null;
 
   const text = visibleText(html);
+  // Out or unavailable only ever comes from the main product's structured data.
   let stockStatus = ld?.stock ?? null;
   let stockCount: number | null = null;
   const low = stockStatus === "out" || stockStatus === "unavailable" ? null : parseLowStock(text);

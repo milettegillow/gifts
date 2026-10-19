@@ -104,7 +104,7 @@ export function PersonGifts({
       {tab === "ideas" && byStatus.ideas.length > 0 && (
         <>
           <div className="flex flex-wrap items-center gap-3">
-            <MobileFilters filters={filters} onChange={setFilters} currency={context.defaultCurrency} matches={shown.length} />
+            <FilterSort filters={filters} onChange={setFilters} currency={context.defaultCurrency} matches={shown.length} />
             <button
               type="button"
               aria-pressed={planning}
@@ -118,9 +118,7 @@ export function PersonGifts({
             </button>
             <BudgetField personId={context.personId} initial={budget} currency={context.defaultCurrency} />
           </div>
-          <div className="hidden bg-card p-3 shadow-[0_0_0_1px_var(--color-card-line)] sm:block">
-            <FilterControls filters={filters} onChange={setFilters} currency={context.defaultCurrency} layout="bar" />
-          </div>
+          <ActiveFilters filters={filters} onChange={setFilters} currency={context.defaultCurrency} />
         </>
       )}
 
@@ -225,7 +223,17 @@ function BudgetField({ personId, initial, currency }: { personId: string; initia
   );
 }
 
-function MobileFilters({
+const SORT_LABELS: Record<Filters["sort"], string> = {
+  newest: "Newest",
+  "price-asc": "Price low to high",
+  "price-desc": "Price high to low",
+  fastest: "Fastest delivery",
+};
+
+const NO_FILTERS = { min: null, max: null, delivery: null, type: null, sort: "newest" } as const;
+
+// "Filter and sort": one pill, on every screen size, that opens the sheet.
+function FilterSort({
   filters,
   onChange,
   currency,
@@ -237,33 +245,71 @@ function MobileFilters({
   matches: number;
 }) {
   const [open, setOpen] = useState(false);
-  const count = activeFilterCount(filters);
+  const active = activeFilterCount(filters) > 0 || filters.sort !== "newest";
   return (
-    <div className="sm:hidden">
+    <>
       <button type="button" onClick={() => setOpen(true)} className={`${pillClass} text-ink`}>
-        Filter{count > 0 ? ` (${count})` : ""}
+        Filter and sort
       </button>
-      <Sheet open={open} onClose={() => setOpen(false)} label="Filter">
+      <Sheet open={open} onClose={() => setOpen(false)} label="Filter and sort">
         <div className="flex flex-col gap-5">
-          <h2 className="font-display text-2xl text-ink">Filter</h2>
-          <FilterControls filters={filters} onChange={onChange} currency={currency} layout="sheet" />
+          <h2 className="font-display text-2xl text-ink">Filter and sort</h2>
+          <FilterControls filters={filters} onChange={onChange} currency={currency} />
           <div className="flex items-center gap-5">
             <button type="button" onClick={() => setOpen(false)} className={buttonClass}>
               Show {matches} {matches === 1 ? "idea" : "ideas"}
             </button>
-            {count > 0 && (
-              <button
-                type="button"
-                onClick={() => onChange({ ...filters, min: null, max: null, delivery: null, low: false, type: null })}
-                className={linkButtonClass}
-              >
+            {active && (
+              <button type="button" onClick={() => onChange({ ...filters, ...NO_FILTERS })} className={linkButtonClass}>
                 Clear
               </button>
             )}
           </div>
         </div>
       </Sheet>
-    </div>
+    </>
+  );
+}
+
+// What's applied, as chips that each remove themselves: "£20-£50 ×".
+function ActiveFilters({ filters, onChange, currency }: { filters: Filters; onChange: (f: Filters) => void; currency: string }) {
+  // Whole amounts stay whole ("£20", not "£20.00").
+  const money = (n: number) =>
+    Number.isInteger(n)
+      ? new Intl.NumberFormat("en-GB", { style: "currency", currency, maximumFractionDigits: 0 }).format(n)
+      : formatMoney(n, currency);
+  const chips: { label: string; clear: Partial<Filters> }[] = [];
+  if (filters.min != null || filters.max != null) {
+    const label =
+      filters.min != null && filters.max != null
+        ? `${money(filters.min)}-${money(filters.max)}`
+        : filters.min != null
+          ? `From ${money(filters.min)}`
+          : `Up to ${money(filters.max!)}`;
+    chips.push({ label, clear: { min: null, max: null } });
+  }
+  if (filters.delivery != null) chips.push({ label: `Up to ${filters.delivery} days`, clear: { delivery: null } });
+  if (filters.type) chips.push({ label: filters.type === "link" ? "Links" : "Own ideas", clear: { type: null } });
+  if (filters.sort !== "newest") chips.push({ label: SORT_LABELS[filters.sort], clear: { sort: "newest" } });
+  if (chips.length === 0) return null;
+  return (
+    <ul aria-label="Filters" className="-my-2 flex flex-wrap gap-x-2">
+      {chips.map((c) => (
+        <li key={c.label}>
+          <button
+            type="button"
+            aria-label={`Remove ${c.label}`}
+            onClick={() => onChange({ ...filters, ...c.clear })}
+            className="inline-flex min-h-11 items-center"
+          >
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 text-gold-text">
+              {c.label}
+              <span aria-hidden>×</span>
+            </span>
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -271,12 +317,10 @@ function FilterControls({
   filters,
   onChange,
   currency,
-  layout,
 }: {
   filters: Filters;
   onChange: (f: Filters) => void;
   currency: string;
-  layout: "bar" | "sheet";
 }) {
   // Typed text, so a half-typed number isn't lost; the URL gets the number.
   const [min, setMin] = useState(filters.min == null ? "" : String(filters.min));
@@ -285,16 +329,13 @@ function FilterControls({
     const n = Number(s.replace(/[^\d.]/g, ""));
     return s.trim() === "" || !Number.isFinite(n) ? null : n;
   };
-  // The bar's controls size to their content; the sheet's fill the width.
-  const control = layout === "bar" ? fieldClass.replace("w-full", "w-auto") : fieldClass;
-  const priceBox = layout === "bar" ? fieldClass.replace("w-full", "w-24") : `${fieldClass} min-w-0`;
-  const wrap = layout === "bar" ? "flex flex-wrap items-end gap-3" : "flex flex-col gap-5";
+  const priceBox = `${fieldClass} min-w-0`;
 
   return (
-    <div className={wrap}>
+    <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
-        <span id={`price-${layout}`}>Price ({currency})</span>
-        <div role="group" aria-labelledby={`price-${layout}`} className="flex items-center gap-2">
+        <span id="price-range">Price ({currency})</span>
+        <div role="group" aria-labelledby="price-range" className="flex items-center gap-2">
           <input
             type="text"
             inputMode="decimal"
@@ -327,7 +368,7 @@ function FilterControls({
         <select
           value={filters.delivery ?? ""}
           onChange={(e) => onChange({ ...filters, delivery: (Number(e.target.value) || null) as Filters["delivery"] })}
-          className={control}
+          className={fieldClass}
         >
           <option value="">Any</option>
           <option value="3">Up to 3 days</option>
@@ -340,7 +381,7 @@ function FilterControls({
         <select
           value={filters.type ?? ""}
           onChange={(e) => onChange({ ...filters, type: (e.target.value || null) as Filters["type"] })}
-          className={control}
+          className={fieldClass}
         >
           <option value="">All</option>
           <option value="link">Links</option>
@@ -349,21 +390,13 @@ function FilterControls({
       </label>
       <label className="flex flex-col gap-1">
         <span>Sort</span>
-        <select value={filters.sort} onChange={(e) => onChange({ ...filters, sort: e.target.value as Filters["sort"] })} className={control}>
-          <option value="newest">Newest</option>
-          <option value="price-asc">Price low to high</option>
-          <option value="price-desc">Price high to low</option>
-          <option value="fastest">Fastest delivery</option>
+        <select value={filters.sort} onChange={(e) => onChange({ ...filters, sort: e.target.value as Filters["sort"] })} className={fieldClass}>
+          {Object.entries(SORT_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
         </select>
-      </label>
-      <label className="flex min-h-11 cursor-pointer items-center gap-2">
-        <input
-          type="checkbox"
-          checked={filters.low}
-          onChange={(e) => onChange({ ...filters, low: e.target.checked })}
-          className="size-5 accent-ink"
-        />
-        <span>Low stock only</span>
       </label>
     </div>
   );

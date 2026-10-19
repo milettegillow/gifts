@@ -7,7 +7,6 @@ export type Filters = {
   min: number | null;
   max: number | null;
   delivery: 3 | 7 | 14 | null;
-  low: boolean;
   type: "link" | "idea" | null;
   sort: Sort;
 };
@@ -28,7 +27,6 @@ export function readFilters(params: URLSearchParams): Filters {
     min: amount(params.get("min")),
     max: amount(params.get("max")),
     delivery: delivery === 3 || delivery === 7 || delivery === 14 ? delivery : null,
-    low: params.get("low") === "1",
     type: type === "link" || type === "idea" ? type : null,
     sort: SORTS.includes(sort) ? sort : "newest",
   };
@@ -40,14 +38,14 @@ export function filterParams(f: Filters): Record<string, string | null> {
     min: f.min == null ? null : String(f.min),
     max: f.max == null ? null : String(f.max),
     delivery: f.delivery == null ? null : String(f.delivery),
-    low: f.low ? "1" : null,
+    low: null, // a retired filter; dropped from old links
     type: f.type,
     sort: f.sort === "newest" ? null : f.sort,
   };
 }
 
 export function activeFilterCount(f: Filters): number {
-  return [f.min != null || f.max != null, f.delivery != null, f.low, f.type != null].filter(Boolean).length;
+  return [f.min != null || f.max != null, f.delivery != null, f.type != null].filter(Boolean).length;
 }
 
 // Unknown values go last whichever way the sort runs.
@@ -69,7 +67,6 @@ export function applyFilters(gifts: GiftCardData[], f: Filters): GiftCardData[] 
       if (f.max != null && g.sortPrice > f.max) return false;
     }
     if (f.delivery != null && (g.shippingMax == null || g.shippingMax > f.delivery)) return false;
-    if (f.low && !g.low) return false;
     if (f.type && g.kind !== f.type) return false;
     return true;
   });

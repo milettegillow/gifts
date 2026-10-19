@@ -32,6 +32,8 @@ const GiftSchema = z.object({
   stockStatus: z.enum(["in_stock", "low", "out", "unavailable"]).nullish().transform((s) => s ?? null),
   stockCount: z.number().int().min(0).max(100_000).nullish().transform((n) => n ?? null),
   checked: z.boolean().optional().default(false),
+  // The stock was picked by hand in the sheet.
+  stockManual: z.boolean().optional().default(false),
   removePhoto: z.boolean().optional().default(false),
   // "Add past gift": saved straight as gifted.
   past: z
@@ -115,6 +117,7 @@ export async function giftFields(
       shippingDaysMax: kind === "link" ? (days?.max ?? null) : null,
       stockStatus: kind === "link" ? form.stockStatus : null,
       stockCount: kind === "link" && form.stockStatus === "low" ? form.stockCount : null,
+      stockManual: kind === "link" && form.stockManual,
       notes: kind === "idea" ? form.notes : null,
       checked: kind === "link" && form.checked,
     },

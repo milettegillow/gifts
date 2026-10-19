@@ -104,7 +104,6 @@ async function PersonView({ params }: { params: PageProps<"/people/[id]">["param
     stock: stockTag(g),
     sortPrice: prices.convert(g.priceAmount, g.priceCurrency),
     shippingMax: g.shippingDaysMax ?? g.shippingDaysMin,
-    low: g.stockStatus === "low",
     createdAt: g.createdAt,
     giftedOn: g.giftedOn,
     occasionLabel: occasionLabel(g),
@@ -124,6 +123,7 @@ async function PersonView({ params }: { params: PageProps<"/people/[id]">["param
       notes: g.notes ?? "",
       stockStatus: g.stockStatus,
       stockCount: g.stockCount,
+      stockManual: g.stockManual,
     },
   }));
 

@@ -89,6 +89,17 @@ function keepValid<T extends Record<string, z.ZodType>>(fields: T, data: unknown
   return out;
 }
 
+// "Out" and "unavailable" are only kept when Claude quotes the page saying so
+// about the product; anything weaker leaves the stock unknown.
+function trustedStock(product: ClaudeProduct, raw: unknown): ClaudeProduct {
+  const evidence = raw && typeof raw === "object" ? (raw as Record<string, unknown>).stock_evidence : null;
+  if ((product.stock_status === "out" || product.stock_status === "unavailable") && !(typeof evidence === "string" && evidence.trim())) {
+    delete product.stock_status;
+    delete product.stock_count;
+  }
+  return product;
+}
+
 // Structured output for the text call: every field present, null if unknown.
 const ProductOutput = z.object({
   title: z.string().nullable(),
@@ -97,6 +108,7 @@ const ProductOutput = z.object({
   image_url: z.string().nullable(),
   stock_status: z.enum(STOCK).nullable(),
   stock_count: z.number().nullable(),
+  stock_evidence: z.string().nullable(),
   shipping_text: z.string().nullable(),
   shipping_days_min: z.number().nullable(),
   shipping_days_max: z.number().nullable(),
@@ -106,7 +118,8 @@ const PRODUCT_INSTRUCTIONS = `You read product pages for a gift list. Report onl
 - title: the product's name as the shop gives it.
 - price_amount and price_currency (ISO 4217, e.g. GBP): the current selling price.
 - image_url: the main product image, as an absolute URL.
-- stock_status: in_stock, low (only a few left / low stock), out (out of stock / sold out), unavailable (discontinued / no longer sold), or null.
+- stock_status: in_stock, low (only a few left), out (sold out), unavailable (discontinued / no longer sold), or null. Pages often contain "Out of stock" or "Sold out" text that isn't about this product right now - hidden button states and templates, other sizes or colours, recommended products, back-in-stock sign-up forms. Only say out or unavailable when the page clearly says the main product as a whole can't be bought; if there's an "Add to bag" / "Add to basket" button for it, or any doubt, use in_stock or null.
+- stock_evidence: the exact words on the page your stock_status is based on, or null.
 - stock_count: the number left, only if the page says one.
 - shipping_text: the standard delivery estimate in a few words, e.g. "3-5 working days"; shipping_days_min/max: that estimate in days (24 hours = 1).`;
 
@@ -124,7 +137,7 @@ export async function productFromText(userId: string, url: string, text: string)
     });
     logUsage("scrape-text", userId, message);
     if (message.stop_reason === "refusal") return null;
-    return keepValid(PRODUCT_FIELDS, message.parsed_output);
+    return trustedStock(keepValid(PRODUCT_FIELDS, message.parsed_output), message.parsed_output);
   } catch (err) {
     console.error("[claude] scrape-text failed", err instanceof Error ? err.message : err);
     return null;
@@ -160,7 +173,7 @@ async function runWithServerTools(
   return message;
 }
 
-const JSON_ONLY = `Reply with only a JSON object with these keys: title, price_amount, price_currency, image_url, stock_status, stock_count, shipping_text, shipping_days_min, shipping_days_max. Use null for anything unknown. No other text.`;
+const JSON_ONLY = `Reply with only a JSON object with these keys: title, price_amount, price_currency, image_url, stock_status, stock_count, stock_evidence, shipping_text, shipping_days_min, shipping_days_max. Use null for anything unknown. No other text.`;
 
 // When we couldn't fetch the page ourselves (blocked), Claude's web fetch can.
 export async function productViaWebFetch(userId: string, url: string): Promise<ClaudeProduct | null> {
@@ -177,7 +190,8 @@ export async function productViaWebFetch(userId: string, url: string): Promise<C
     });
     logUsage("scrape-web-fetch", userId, message);
     if (message.stop_reason === "refusal") return null;
-    return keepValid(PRODUCT_FIELDS, jsonFrom(message));
+    const raw = jsonFrom(message);
+    return trustedStock(keepValid(PRODUCT_FIELDS, raw), raw);
   } catch (err) {
     console.error("[claude] scrape-web-fetch failed", err instanceof Error ? err.message : err);
     return null;

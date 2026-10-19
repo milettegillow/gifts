@@ -19,6 +19,7 @@ export type GiftEdit = {
   notes: string;
   stockStatus: StockStatus | null;
   stockCount: number | null;
+  stockManual: boolean;
 };
 
 export type GiftCardData = {
@@ -35,7 +36,6 @@ export type GiftCardData = {
   // currency (null if unknown or not convertible), and delivery days.
   sortPrice: number | null;
   shippingMax: number | null;
-  low: boolean;
   createdAt: string;
   giftedOn: string | null;
   // "Birthday, Oct 2026"
