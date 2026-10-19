@@ -13,7 +13,6 @@
     <filter id="box" x="-10%" y="-10%" width="125%" height="130%"><feDropShadow dx="2" dy="6" stdDeviation="6" flood-color="#3d1a00" flood-opacity=".28"/></filter>
     <clipPath id="lid"><rect x="44" y="44" width="312" height="312"/></clipPath>
   </defs>
-  <rect width="400" height="400" fill="#fffaf0"/>
   <rect x="44" y="44" width="312" height="312" fill="url(#gold)" filter="url(#box)"/>
   <g filter="url(#ds)">
     <path d="M200,44 L200,356" stroke="url(#sat)" stroke-width="24" clip-path="url(#lid)"/>

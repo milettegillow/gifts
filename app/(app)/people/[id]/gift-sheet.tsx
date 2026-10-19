@@ -236,9 +236,9 @@ function GiftForm({
         }}
         className="flex flex-col gap-5"
       >
-        <h2 className="font-display text-2xl text-deep-red">Mark as gifted</h2>
+        <h2 className="font-display text-2xl text-ink">Mark as gifted</h2>
         <OccasionFields occasion={occasion} onOccasion={setOccasion} date={date} onDate={setDate} />
-        {error && <p role="alert" className="text-deep-red">{error}</p>}
+        {error && <p role="alert" className="text-ink">{error}</p>}
         <div className="flex items-center gap-5">
           <button type="submit" disabled={busy || !date} className={buttonClass}>
             {busy ? "Saving…" : "Save"}
@@ -260,11 +260,11 @@ function GiftForm({
         }}
         className="flex flex-col gap-5"
       >
-        <h2 className="font-display text-2xl text-deep-red">Decided against</h2>
+        <h2 className="font-display text-2xl text-ink">Decided against</h2>
         <Field label="Reason" htmlFor="gift-reason">
           <textarea id="gift-reason" rows={3} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} className={`${fieldClass} resize-y`} />
         </Field>
-        {error && <p role="alert" className="text-deep-red">{error}</p>}
+        {error && <p role="alert" className="text-ink">{error}</p>}
         <div className="flex items-center gap-5">
           <button type="submit" disabled={busy} className={buttonClass}>
             {busy ? "Saving…" : "Save"}
@@ -280,8 +280,8 @@ function GiftForm({
   if (gift && confirming) {
     return (
       <div className="flex flex-col gap-5">
-        <h2 className="font-display text-2xl text-deep-red">Delete this gift?</h2>
-        {error && <p role="alert" className="text-deep-red">{error}</p>}
+        <h2 className="font-display text-2xl text-ink">Delete this gift?</h2>
+        {error && <p role="alert" className="text-ink">{error}</p>}
         <div className="flex items-center gap-5">
           <button type="button" onClick={remove} disabled={busy} className={buttonClass}>
             {busy ? "Deleting…" : "Delete"}
@@ -325,10 +325,10 @@ function GiftForm({
 
   return (
     <form onSubmit={save} className="flex flex-col gap-5">
-      <h2 className="font-display text-2xl text-deep-red">{editing ? "Edit gift" : past ? "Add past gift" : "Add a gift"}</h2>
+      <h2 className="font-display text-2xl text-ink">{editing ? "Edit gift" : past ? "Add past gift" : "Add a gift"}</h2>
 
       {!editing && (
-        <div role="radiogroup" aria-label="Kind of gift" className="grid grid-cols-2 border border-deep-red">
+        <div role="radiogroup" aria-label="Kind of gift" className="grid grid-cols-2 border border-ink">
           {(["link", "idea"] as const).map((k) => (
             <button
               key={k}
@@ -339,7 +339,7 @@ function GiftForm({
                 setKind(k);
                 setError(null);
               }}
-              className={`py-2.5 ${kind === k ? "bg-deep-red text-gold-light" : "text-deep-red"}`}
+              className={`py-2.5 ${kind === k ? "bg-ink text-gold-text" : "text-ink"}`}
             >
               {k === "link" ? "Link" : "Own idea"}
             </button>
@@ -377,7 +377,7 @@ function GiftForm({
               </button>
             </div>
           </Field>
-          {fetchFailed && <p className="text-deep-red">Couldn&apos;t read that page</p>}
+          {fetchFailed && <p className="text-ink">Couldn&apos;t read that page</p>}
           {showFields && (
             <>
               <Field label="Title" htmlFor="gift-title">
@@ -451,7 +451,7 @@ function GiftForm({
         </>
       )}
 
-      {error && <p role="alert" className="text-deep-red">{error}</p>}
+      {error && <p role="alert" className="text-ink">{error}</p>}
 
       {(kind === "idea" || showFields) && (
         <div className="flex items-center gap-5">
@@ -466,7 +466,7 @@ function GiftForm({
               type="button"
               onClick={() => setConfirming(true)}
               disabled={busy}
-              className="ml-auto inline-flex min-h-11 items-center text-deep-red underline disabled:opacity-60"
+              className="ml-auto inline-flex min-h-11 items-center text-ink hover:underline focus-visible:underline disabled:opacity-60"
             >
               Delete
             </button>

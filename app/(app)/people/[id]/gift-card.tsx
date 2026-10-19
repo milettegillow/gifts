@@ -31,7 +31,7 @@ export function GiftCard({
   const grey = gone ? "grayscale" : declined ? "grayscale-[60%]" : "";
 
   return (
-    <li className={`relative flex flex-col bg-cream text-ink ${faded}`}>
+    <li className={`relative flex flex-col bg-card text-ink shadow-[0_0_0_1px_var(--color-card-line)] ${faded}`}>
       <button type="button" onClick={onOpen} className="flex flex-1 flex-col text-left">
         <span className="relative block aspect-square w-full overflow-hidden">
           <Image
@@ -47,7 +47,7 @@ export function GiftCard({
           />
         </span>
         <span className="flex flex-col gap-2 p-3">
-          <span className="line-clamp-2 break-words">{gift.title}</span>
+          <span className="line-clamp-2 font-semibold break-words">{gift.title}</span>
           {gift.status === "gifted" && gift.occasionLabel && <span>{gift.occasionLabel}</span>}
           {declined && gift.declinedReason && <span className="break-words">{gift.declinedReason}</span>}
           <Tags gift={gift} />
@@ -60,25 +60,27 @@ export function GiftCard({
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`Open ${gift.title}`}
-          className="absolute top-1 right-1 flex size-11 items-center justify-center bg-cream/90 text-ink hover:bg-cream"
+          className="absolute top-1 right-1 flex size-11 items-center justify-center rounded-full bg-cream/90 text-ink hover:bg-cream"
         >
           <LinkIcon className="size-5" />
         </a>
       )}
       {planning && (
-        <label className="absolute top-1 left-1 flex size-11 cursor-pointer items-center justify-center bg-cream/90">
+        <label className="absolute top-1 left-1 flex size-11 cursor-pointer items-center justify-center rounded-full bg-cream/90">
           <input
             type="checkbox"
             checked={!!ticked}
             onChange={(e) => onTick?.(e.target.checked)}
             aria-label={`Include ${gift.title}`}
-            className="size-5 cursor-pointer accent-ribbon"
+            className="size-5 cursor-pointer accent-ink"
           />
         </label>
       )}
     </li>
   );
 }
+
+const tag = "rounded-full px-2.5";
 
 function Tags({ gift }: { gift: GiftCardData }) {
   const ideas = gift.status === "saved";
@@ -87,11 +89,9 @@ function Tags({ gift }: { gift: GiftCardData }) {
   if (!gift.price && !shipping && !stock) return null;
   return (
     <span className="flex flex-wrap gap-1">
-      {gift.price && <span className="bg-gold-light px-1.5">{gift.price}</span>}
-      {shipping && <span className="border border-gold-mid px-1.5">{shipping}</span>}
-      {stock && (
-        <span className={`px-1.5 ${stock.gone ? "bg-ink text-cream" : "bg-ribbon text-gold-light"}`}>{stock.text}</span>
-      )}
+      {gift.price && <span className={`${tag} bg-ink text-gold-text`}>{gift.price}</span>}
+      {shipping && <span className={`${tag} shadow-[inset_0_0_0_1px_var(--color-ink)]`}>{shipping}</span>}
+      {stock && <span className={`${tag} bg-ink text-gold-text`}>{stock.text}</span>}
     </span>
   );
 }

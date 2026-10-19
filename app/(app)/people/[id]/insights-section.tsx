@@ -73,12 +73,12 @@ export function InsightsSection({
   return (
     <section aria-label="What they like" className="flex flex-col gap-5">
       <div className="flex items-baseline justify-between gap-4">
-        <h2 className="font-display text-2xl text-deep-red">What they like</h2>
+        <h2 className="font-display text-2xl text-ink">What they like</h2>
         <button type="button" onClick={refresh} disabled={refreshing} className={linkButtonClass}>
           {refreshing ? "Refreshing…" : "Refresh"}
         </button>
       </div>
-      {error && <p role="alert" className="text-deep-red">{error}</p>}
+      {error && <p role="alert" className="text-ink">{error}</p>}
       {empty && refreshing && <p>Looking for themes…</p>}
 
       {themes.length > 0 && (
@@ -91,7 +91,7 @@ export function InsightsSection({
                   type="button"
                   aria-pressed={on}
                   onClick={() => onTheme(on ? null : t.label)}
-                  className={`min-h-11 border px-3 py-1.5 ${on ? "border-deep-red bg-deep-red text-gold-light" : "border-cream bg-cream text-deep-red"}`}
+                  className={`min-h-11 rounded-full px-4 py-1.5 ${on ? "text-ink shadow-[inset_0_0_0_2px_var(--color-ink)]" : "bg-ink text-gold-text"}`}
                 >
                   {t.label}
                 </button>
@@ -103,7 +103,7 @@ export function InsightsSection({
 
       {suggestions.length > 0 && (
         <>
-          <h2 className="font-display text-2xl text-deep-red">Where to look</h2>
+          <h2 className="font-display text-2xl text-ink">Where to look</h2>
           <ul className="flex flex-col gap-4">
             {suggestions.map((s) => (
               <li key={s.name} className="flex flex-col gap-1">
@@ -111,7 +111,7 @@ export function InsightsSection({
                   href={`https://www.google.com/search?q=${encodeURIComponent(s.query)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex min-h-11 items-center self-start text-ink underline"
+                  className="inline-flex min-h-11 min-w-11 items-center self-start font-semibold text-ink hover:underline focus-visible:underline"
                 >
                   {s.name}
                 </a>

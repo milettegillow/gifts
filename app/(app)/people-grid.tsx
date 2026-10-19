@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { Person } from "@/lib/people";
-import { Avatar } from "@/app/ui/avatar";
+import { Avatar, personRing } from "@/app/ui/avatar";
 import { PersonSheet } from "./person-sheet";
 
 const AVATAR = 72;
@@ -13,15 +13,15 @@ export function PeopleGrid({ people }: { people: Person[] }) {
   const [adding, setAdding] = useState(false);
   return (
     <>
-      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
         {people.map((person) => (
           <li key={person.id}>
             <Link
               href={`/people/${person.id}`}
-              className="flex h-full flex-col items-center gap-2 bg-cream px-3 py-5 text-center text-ink"
+              className="group flex h-full flex-col items-center gap-3 px-2 text-center text-ink"
             >
-              <Avatar name={person.name} photo={person.photo} size={AVATAR} />
-              <span className="break-words">{person.name}</span>
+              <Avatar name={person.name} photo={person.photo} size={AVATAR} className={`${personRing} sm:[--av:96px]`} />
+              <span className="font-semibold break-words group-hover:underline group-focus-visible:underline">{person.name}</span>
               {person.saved > 0 && (
                 <span>
                   {person.saved} {person.saved === 1 ? "idea" : "ideas"}
@@ -34,16 +34,15 @@ export function PeopleGrid({ people }: { people: Person[] }) {
           <button
             type="button"
             onClick={() => setAdding(true)}
-            className="flex h-full w-full flex-col items-center gap-2 bg-cream/50 px-3 py-5 text-ink"
+            className="group flex h-full w-full flex-col items-center gap-3 px-2 text-ink"
           >
             <span
               aria-hidden
-              className="flex items-center justify-center rounded-full border-2 border-dashed border-deep-red text-4xl leading-none text-deep-red"
-              style={{ width: AVATAR, height: AVATAR }}
+              className="flex size-[72px] items-center justify-center rounded-full border-2 border-dashed border-ink text-4xl leading-none text-ink sm:size-24"
             >
               +
             </span>
-            <span>Add</span>
+            <span className="font-semibold group-hover:underline group-focus-visible:underline">Add</span>
           </button>
         </li>
       </ul>

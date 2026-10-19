@@ -32,7 +32,7 @@ export function CurrencyPicker({ value, options }: { value: string; options: str
         value={currency}
         disabled={saving}
         onChange={(e) => change(e.target.value)}
-        className="min-h-11 cursor-pointer appearance-none bg-deep-red py-1 pr-8 pl-3 text-gold-light disabled:opacity-80"
+        className="min-h-11 cursor-pointer appearance-none rounded-full bg-ink py-1 pr-8 pl-4 text-gold-text disabled:opacity-80"
       >
         {options.map((code) => (
           <option key={code} value={code} className="bg-cream text-ink">
@@ -43,7 +43,7 @@ export function CurrencyPicker({ value, options }: { value: string; options: str
       <svg
         aria-hidden
         viewBox="0 0 10 6"
-        className="pointer-events-none absolute right-2.5 h-1.5 w-2.5 fill-gold-light"
+        className="pointer-events-none absolute right-3.5 h-1.5 w-2.5 fill-gold-text"
       >
         <path d="M0 0h10L5 6z" />
       </svg>

@@ -21,7 +21,7 @@ export function RibbonHeader({ right }: { right?: ReactNode }) {
   return (
     <header className="relative pt-5 pb-9">
       <div className="mx-auto flex w-full max-w-[640px] items-center justify-between px-4 pb-5">
-        <Link href="/" className="inline-flex min-h-11 items-center font-display text-[30px] leading-none text-deep-red sm:text-4xl">
+        <Link href="/" className="inline-flex min-h-11 items-center font-display text-[30px] leading-none text-ink sm:text-4xl">
           Giftbook
         </Link>
         {right}

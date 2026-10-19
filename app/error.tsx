@@ -15,7 +15,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
     <>
       <RibbonHeader />
       <main className="mx-auto flex w-full max-w-[640px] flex-1 flex-col items-start gap-5 px-4 pb-12">
-        <h1 className="font-display text-3xl text-deep-red">Something went wrong</h1>
+        <h1 className="font-display text-3xl text-ink">Something went wrong</h1>
         <div className="flex flex-wrap items-center gap-5">
           <button type="button" onClick={reset} className={buttonClass}>
             Try again

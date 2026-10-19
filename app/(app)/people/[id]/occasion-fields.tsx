@@ -26,7 +26,7 @@ export function OccasionFields({
               type="button"
               aria-pressed={occasion === o}
               onClick={() => onOccasion(occasion === o ? "" : o)}
-              className={`min-h-11 border border-deep-red px-3 py-1.5 ${occasion === o ? "bg-deep-red text-gold-light" : "text-deep-red"}`}
+              className={`min-h-11 rounded-full border border-ink px-4 py-1.5 ${occasion === o ? "bg-ink text-gold-text" : "text-ink"}`}
             >
               {o}
             </button>

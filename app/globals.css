@@ -1,17 +1,19 @@
 @import "tailwindcss";
 
-/* Wrapping paper: gold foil, ribbon red and cream. */
+/* Gold foil and black satin. */
 @theme {
-  --color-ribbon: #8c1424;
-  --color-deep-red: #6e0f1b;
-  --color-ink: #3d0a10;
-  --color-cream: #fffaf0;
+  --color-ink: #0b0b0d;
+  --color-text: #14100a;
+  --color-gold-text: #f3d68a; /* text on black */
+  --color-card: rgba(255, 250, 240, 0.55);
+  --color-card-line: rgba(11, 11, 13, 0.25);
+  --color-cream: #fffaf0; /* the login tag and sheets */
   --color-gold-light: #f7e3a6;
   --color-gold-mid: #c9973e;
   --color-gold-dark: #a8782a;
 
-  --font-display: var(--font-playfair), Georgia, serif;
-  --font-serif: Georgia, "Times New Roman", serif;
+  --font-display: var(--font-playfair), serif;
+  --font-serif: var(--font-lora), serif;
 }
 
 html {
@@ -19,8 +21,9 @@ html {
 }
 
 body {
-  color: var(--color-ink);
+  color: var(--color-text);
   font-family: var(--font-serif);
+  font-weight: 500;
 }
 
 /* Gold foil, fixed so it never stretches on long pages. A fixed layer rather
@@ -33,15 +36,15 @@ body::before {
   background: linear-gradient(135deg, #a8782a, #f3d68a 35%, #c9973e 55%, #f7e3a6 75%, #a8782a);
 }
 
-/* Keyboard focus, everywhere, in deep red. */
+/* Keyboard focus, everywhere, in ink. */
 :focus-visible {
-  outline: 2px solid var(--color-deep-red);
+  outline: 2px solid var(--color-ink);
   outline-offset: 2px;
 }
 
 /* Loading placeholders: cream with a slow gold sheen. */
 .skeleton {
-  background: linear-gradient(100deg, var(--color-cream) 40%, var(--color-gold-light) 50%, var(--color-cream) 60%) 0 0 / 300% 100%;
+  background: linear-gradient(100deg, var(--color-card) 40%, rgba(247, 227, 166, 0.9) 50%, var(--color-card) 60%) 0 0 / 300% 100%;
   animation: skeleton-shimmer 2.4s ease-in-out infinite;
 }
 
@@ -60,12 +63,24 @@ body::before {
   }
 }
 
-/* Square corners everywhere, including Safari's default inputs and buttons. */
-button,
-input,
-select,
-textarea {
-  border-radius: 0;
+/* Headings and the wordmark are always Playfair Display 700. */
+.font-display {
+  font-weight: 700;
+}
+
+option {
+  font-weight: inherit;
+}
+
+/* Square corners by default, including Safari's own inputs and buttons. In
+   the base layer, so rounded-full on pills still wins. */
+@layer base {
+  button,
+  input,
+  select,
+  textarea {
+    border-radius: 0;
+  }
 }
 
 /* The unwrap: no overlay at all with reduced motion. If the script never
@@ -209,7 +224,7 @@ textarea {
 }
 
 .gift-tag-input:focus {
-  outline: calc(2px * var(--s)) solid var(--color-deep-red);
+  outline: calc(2px * var(--s)) solid var(--color-ink);
 }
 
 /* The tag's field and button are 20 units tall by design; these invisible

@@ -30,9 +30,9 @@ export function Onboarding({ countries, initial }: { countries: Country[]; initi
 
   return (
     <form onSubmit={submit} className="mx-auto flex w-full max-w-[400px] flex-col gap-5 pt-6">
-      <h1 className="font-display text-3xl text-deep-red">Where are you?</h1>
+      <h1 className="font-display text-3xl text-ink">Where are you?</h1>
       <CountryPicker countries={countries} value={country} onChange={setCountry} label="Country" />
-      {error && <p role="alert" className="text-deep-red">{error}</p>}
+      {error && <p role="alert" className="text-ink">{error}</p>}
       <button type="submit" disabled={!country || busy} className={`${buttonClass} w-full`}>
         {busy ? "Saving…" : "Continue"}
       </button>

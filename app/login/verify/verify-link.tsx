@@ -44,7 +44,7 @@ export function VerifyLink() {
   if (outcome === "checking") {
     return (
       <div role="status" aria-label="Logging you in" className="pt-6">
-        <span className="block size-6 animate-spin rounded-full border-2 border-ribbon border-t-transparent" />
+        <span className="block size-6 animate-spin rounded-full border-2 border-ink border-t-transparent" />
       </div>
     );
   }
@@ -78,7 +78,7 @@ function Message({
 }) {
   return (
     <div className="flex flex-col items-center gap-4 text-center">
-      <h1 className="font-display text-3xl text-deep-red">{title}</h1>
+      <h1 className="font-display text-3xl text-ink">{title}</h1>
       {body && <p className="text-ink">{body}</p>}
       <Link href={action.href} className={`${buttonClass} mt-2`}>
         {action.label}

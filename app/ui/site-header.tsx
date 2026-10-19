@@ -1,17 +1,26 @@
 import { Suspense } from "react";
+import { SignOutButton } from "@clerk/nextjs";
 import { supportedCurrencies } from "@/lib/currencies";
 import { getUserSettings, requireUser } from "@/lib/users";
 import { CurrencyPicker } from "./currency-picker";
 import { RibbonHeader } from "./ribbon-header";
+import { linkButtonClass } from "./styles";
 
-// The header on signed-in pages, with the user's currency.
+// The header on signed-in pages: the user's currency, and Log out.
 export function SiteHeader() {
   return (
     <RibbonHeader
       right={
-        <Suspense fallback={<span aria-hidden className="skeleton block h-11 w-20" />}>
-          <HeaderCurrency />
-        </Suspense>
+        <div className="flex items-center gap-4">
+          <Suspense fallback={<span aria-hidden className="skeleton block h-11 w-20 rounded-full" />}>
+            <HeaderCurrency />
+          </Suspense>
+          <SignOutButton>
+            <button type="button" className={linkButtonClass}>
+              Log out
+            </button>
+          </SignOutButton>
+        </div>
       }
     />
   );

@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { requestJson } from "@/lib/client";
 import { formatMoney } from "@/lib/money";
 import { Sheet } from "@/app/ui/sheet";
-import { buttonClass, fieldClass, linkButtonClass } from "@/app/ui/styles";
+import { buttonClass, fieldClass, linkButtonClass, pillClass } from "@/app/ui/styles";
 import { activeFilterCount, applyFilters, byGiftedDate, filterParams, readFilters, type Filters } from "./filters";
 import { GiftCard } from "./gift-card";
 import { GiftSheet, type SheetContext } from "./gift-sheet";
@@ -83,14 +83,14 @@ export function PersonGifts({
       {insights && (
         <InsightsSection personId={context.personId} insights={insights} activeTheme={theme?.label ?? null} onTheme={setThemeLabel} />
       )}
-      <nav aria-label="Gifts" className="grid grid-cols-3 border border-deep-red">
+      <nav aria-label="Gifts" className="grid grid-cols-3 border border-ink">
         {TABS.map((t) => (
           <button
             key={t.key}
             type="button"
             aria-current={tab === t.key ? "page" : undefined}
             onClick={() => update({ tab: t.key === "ideas" ? null : t.key }, true)}
-            className={`min-h-11 px-1 py-2 leading-tight ${tab === t.key ? "bg-deep-red text-gold-light" : "text-deep-red"}`}
+            className={`min-h-11 px-1 py-2 leading-tight ${tab === t.key ? "bg-ink text-gold-text" : "text-ink"}`}
           >
             {t.label} {byStatus[t.key].length}
           </button>
@@ -108,13 +108,13 @@ export function PersonGifts({
                 setPlanning(!planning);
                 setTicked(new Set());
               }}
-              className={`border border-deep-red px-4 py-2.5 ${planning ? "bg-deep-red text-gold-light" : "text-deep-red"}`}
+              className={`${pillClass} ${planning ? "bg-ink text-gold-text" : "text-ink"}`}
             >
               Plan
             </button>
             <BudgetField personId={context.personId} initial={budget} currency={context.defaultCurrency} />
           </div>
-          <div className="hidden bg-cream/60 p-3 sm:block">
+          <div className="hidden bg-card p-3 shadow-[0_0_0_1px_var(--color-card-line)] sm:block">
             <FilterControls filters={filters} onChange={setFilters} currency={context.defaultCurrency} layout="bar" />
           </div>
         </>
@@ -169,8 +169,8 @@ function PlanTotal({ total, budget, currency }: { total: number; budget: number 
   return (
     <div
       role="status"
-      className={`sticky bottom-0 -mx-4 border-t px-4 py-3 text-lg sm:bottom-4 sm:mx-0 sm:border ${
-        over ? "border-deep-red bg-ribbon text-gold-light" : "border-gold-mid bg-cream text-ink"
+      className={`sticky bottom-[max(0.75rem,env(safe-area-inset-bottom))] self-center rounded-full px-6 py-2.5 text-lg font-semibold shadow-[0_4px_10px_rgba(61,26,0,0.35)] ${
+        over ? "bg-ink text-gold-text" : "bg-cream text-ink"
       }`}
     >
       {formatMoney(total, currency)}
@@ -213,7 +213,7 @@ function BudgetField({ personId, initial, currency }: { personId: string; initia
           onBlur={save}
           onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()}
           aria-invalid={error}
-          className={`${fieldClass.replace("w-full", "w-28")} ${error ? "border-deep-red" : ""}`}
+          className={`${fieldClass.replace("w-full", "w-28")} ${error ? "border-ink" : ""}`}
         />
         <span>{currency}</span>
       </span>
@@ -236,12 +236,12 @@ function MobileFilters({
   const count = activeFilterCount(filters);
   return (
     <div className="sm:hidden">
-      <button type="button" onClick={() => setOpen(true)} className="border border-deep-red px-4 py-2.5 text-deep-red">
+      <button type="button" onClick={() => setOpen(true)} className={`${pillClass} text-ink`}>
         Filter{count > 0 ? ` (${count})` : ""}
       </button>
       <Sheet open={open} onClose={() => setOpen(false)} label="Filter">
         <div className="flex flex-col gap-5">
-          <h2 className="font-display text-2xl text-deep-red">Filter</h2>
+          <h2 className="font-display text-2xl text-ink">Filter</h2>
           <FilterControls filters={filters} onChange={onChange} currency={currency} layout="sheet" />
           <div className="flex items-center gap-5">
             <button type="button" onClick={() => setOpen(false)} className={buttonClass}>
@@ -357,7 +357,7 @@ function FilterControls({
           type="checkbox"
           checked={filters.low}
           onChange={(e) => onChange({ ...filters, low: e.target.checked })}
-          className="size-5 accent-ribbon"
+          className="size-5 accent-ink"
         />
         <span>Low stock only</span>
       </label>

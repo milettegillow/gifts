@@ -103,8 +103,8 @@ function PersonForm({ onClose, person }: { onClose: () => void; person?: Editing
   if (person && confirming) {
     return (
       <div className="flex flex-col gap-5">
-        <h2 className="font-display text-2xl text-deep-red">Delete {person.name} and their gifts?</h2>
-        {error && <p role="alert" className="text-deep-red">{error}</p>}
+        <h2 className="font-display text-2xl text-ink">Delete {person.name} and their gifts?</h2>
+        {error && <p role="alert" className="text-ink">{error}</p>}
         <div className="flex items-center gap-5">
           <button type="button" onClick={remove} disabled={busy} className={buttonClass}>
             {busy ? "Deleting…" : "Delete"}
@@ -119,7 +119,7 @@ function PersonForm({ onClose, person }: { onClose: () => void; person?: Editing
 
   return (
     <form onSubmit={save} className="flex flex-col gap-5">
-      <h2 className="font-display text-2xl text-deep-red">{person ? "Edit" : "Add a person"}</h2>
+      <h2 className="font-display text-2xl text-ink">{person ? "Edit" : "Add a person"}</h2>
       <label className="flex flex-col gap-2">
         <span>Name</span>
         <input
@@ -133,7 +133,7 @@ function PersonForm({ onClose, person }: { onClose: () => void; person?: Editing
         />
       </label>
       <div className="flex items-center gap-4">
-        <Avatar name={name || "?"} photo={shownPhoto} size={64} />
+        <Avatar name={name || "?"} photo={shownPhoto} size={64} className="ring-2 ring-ink" />
         <div className="flex flex-col items-start gap-1">
           <label className={`${linkButtonClass} cursor-pointer`}>
             {shownPhoto ? "Change photo" : "Add photo"}
@@ -154,7 +154,7 @@ function PersonForm({ onClose, person }: { onClose: () => void; person?: Editing
           )}
         </div>
       </div>
-      {error && <p role="alert" className="text-deep-red">{error}</p>}
+      {error && <p role="alert" className="text-ink">{error}</p>}
       <div className="flex items-center gap-5">
         <button type="submit" disabled={busy || !name.trim()} className={buttonClass}>
           {busy ? "Saving…" : person ? "Save" : "Add"}
@@ -167,7 +167,7 @@ function PersonForm({ onClose, person }: { onClose: () => void; person?: Editing
             type="button"
             onClick={() => setConfirming(true)}
             disabled={busy}
-            className="ml-auto inline-flex min-h-11 items-center text-deep-red underline disabled:opacity-60"
+            className="ml-auto inline-flex min-h-11 items-center text-ink hover:underline focus-visible:underline disabled:opacity-60"
           >
             Delete
           </button>

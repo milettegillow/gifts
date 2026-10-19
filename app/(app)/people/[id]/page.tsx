@@ -11,7 +11,7 @@ import { pricing } from "@/lib/rates";
 import { recheckStock } from "@/lib/stock";
 import { getUserSettings, requireUser } from "@/lib/users";
 import type { Metadata } from "next";
-import { Avatar } from "@/app/ui/avatar";
+import { Avatar, personRing } from "@/app/ui/avatar";
 import { PersonSkeleton } from "@/app/ui/skeletons";
 import { linkButtonClass } from "@/app/ui/styles";
 import { EditPerson } from "./edit-person";
@@ -134,8 +134,8 @@ async function PersonView({ params }: { params: PageProps<"/people/[id]">["param
         <EditPerson person={{ id: person.id, name: person.name, photo: person.photo }} />
       </div>
       <div className="flex items-center gap-4">
-        <Avatar name={person.name} photo={person.photo} size={72} />
-        <h1 className="min-w-0 flex-1 font-display text-3xl break-words text-deep-red">{person.name}</h1>
+        <Avatar name={person.name} photo={person.photo} size={72} className={personRing} />
+        <h1 className="min-w-0 flex-1 font-display text-3xl break-words text-ink">{person.name}</h1>
         <AddGift context={context} />
       </div>
       <PersonGifts

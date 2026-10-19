@@ -1,11 +1,9 @@
 import { Suspense } from "react";
 import { headers } from "next/headers";
-import { SignOutButton } from "@clerk/nextjs";
 import { isCountryCode, listCountries } from "@/lib/countries";
 import { listPeople } from "@/lib/people";
 import { getUserSettings, requireUser } from "@/lib/users";
 import { PeopleSkeleton } from "@/app/ui/skeletons";
-import { linkButtonClass } from "@/app/ui/styles";
 import { Onboarding } from "./onboarding";
 import { PeopleGrid } from "./people-grid";
 
@@ -35,14 +33,9 @@ async function People() {
   }
   const people = await listPeople(userId);
   return (
-    <div className="flex flex-col gap-10 pt-2">
+    <div className="flex flex-col gap-10 pt-4">
       <h1 className="sr-only">People</h1>
       <PeopleGrid people={people} />
-      <SignOutButton>
-        <button type="button" className={`${linkButtonClass} self-start`}>
-          Log out
-        </button>
-      </SignOutButton>
     </div>
   );
 }
