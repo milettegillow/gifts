@@ -10,6 +10,7 @@ import { activeFilterCount, applyFilters, byGiftedDate, filterParams, readFilter
 import { GiftCard } from "./gift-card";
 import { GiftSheet, type SheetContext } from "./gift-sheet";
 import type { GiftCardData } from "./gift-types";
+import { InsightsSection, type InsightsData } from "./insights-section";
 
 type Tab = "ideas" | "gifted" | "declined";
 const TABS: { key: Tab; label: string }[] = [
@@ -41,10 +42,13 @@ export function PersonGifts({
   gifts,
   context,
   budget,
+  insights,
 }: {
   gifts: GiftCardData[];
   context: SheetContext;
   budget: number | null;
+  // Null for people with too few gifts: the section is hidden.
+  insights: InsightsData | null;
 }) {
   const { params, update } = useQueryState();
   const tabParam = params.get("tab");
@@ -55,6 +59,9 @@ export function PersonGifts({
   const [addingPast, setAddingPast] = useState(false);
   const [planning, setPlanning] = useState(false);
   const [ticked, setTicked] = useState<Set<string>>(new Set());
+  // A theme chip narrows the current tab to that theme's gifts.
+  const [themeLabel, setThemeLabel] = useState<string | null>(null);
+  const theme = insights?.themes.find((t) => t.label === themeLabel) ?? null;
 
   const byStatus = useMemo(
     () => ({
@@ -64,14 +71,18 @@ export function PersonGifts({
     }),
     [gifts],
   );
-  const shown =
+  const inTab =
     tab === "ideas" ? applyFilters(byStatus.ideas, filters) : tab === "gifted" ? byGiftedDate(byStatus.gifted) : byStatus.declined;
+  const shown = theme ? inTab.filter((g) => theme.giftIds.includes(g.id)) : inTab;
 
   const setFilters = (f: Filters) => update(filterParams(f));
   const total = byStatus.ideas.filter((g) => ticked.has(g.id)).reduce((sum, g) => sum + (g.sortPrice ?? 0), 0);
 
   return (
     <div className="flex flex-col gap-5">
+      {insights && (
+        <InsightsSection personId={context.personId} insights={insights} activeTheme={theme?.label ?? null} onTheme={setThemeLabel} />
+      )}
       <nav aria-label="Gifts" className="grid grid-cols-3 border border-deep-red">
         {TABS.map((t) => (
           <button
@@ -117,7 +128,12 @@ export function PersonGifts({
 
       {shown.length === 0 ? (
         <p>
-          {tab === "ideas" ? (byStatus.ideas.length === 0 ? "No gifts yet" : "No matches") : tab === "gifted" ? "Nothing gifted yet" : "Nothing here yet"}
+          {theme && inTab.length > 0
+            ? "No matches"
+            : tab === "ideas"
+              ? byStatus.ideas.length === 0
+                ? "No gifts yet"
+                : "No matches" : tab === "gifted" ? "Nothing gifted yet" : "Nothing here yet"}
         </p>
       ) : (
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">

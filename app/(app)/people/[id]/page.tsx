@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { after } from "next/server";
 import { supportedCurrencies } from "@/lib/currencies";
 import { giftImageSrc, listGifts, type GiftRow } from "@/lib/gifts";
+import { generateInsights, getInsights, giftsHash, MIN_GIFTS } from "@/lib/insights";
 import { getPerson } from "@/lib/people";
 import { isStoredImage, isVideoStill } from "@/lib/photos";
 import { pricing } from "@/lib/rates";
@@ -62,7 +63,20 @@ async function PersonView({ params }: { params: PageProps<"/people/[id]">["param
   if (!person) notFound();
   // Refresh prices and stock for links not checked in a day; shows next load.
   after(() => recheckStock(person.id, userId).catch((err) => console.error("Stock re-check failed", err)));
-  const [gifts, prices] = await Promise.all([listGifts(person.id, userId), pricing(settings.currency)]);
+  const [gifts, prices, insights] = await Promise.all([
+    listGifts(person.id, userId),
+    pricing(settings.currency),
+    getInsights(person.id, userId),
+  ]);
+  // Themes and places to look, for people with enough gifts. When the gifts
+  // have changed since they were worked out, redo them after responding and
+  // show the old ones meanwhile.
+  const hasInsights = gifts.length >= MIN_GIFTS;
+  const hash = giftsHash(gifts);
+  const stale = hasInsights && insights?.sourceHash !== hash;
+  if (stale) {
+    after(() => generateInsights(person.id, userId).then((r) => r !== "done" && console.log(`[insights] ${person.id}: ${r}`)));
+  }
 
   const context = { personId: person.id, currencies, defaultCurrency: settings.currency ?? "USD" };
   const cards: GiftCardData[] = gifts.map((g) => ({
@@ -113,7 +127,16 @@ async function PersonView({ params }: { params: PageProps<"/people/[id]">["param
         <h1 className="min-w-0 flex-1 font-display text-3xl break-words text-deep-red">{person.name}</h1>
         <AddGift context={context} />
       </div>
-      <PersonGifts gifts={cards} context={context} budget={person.budget} />
+      <PersonGifts
+        gifts={cards}
+        context={context}
+        budget={person.budget}
+        insights={
+          hasInsights
+            ? { themes: insights?.themes ?? [], suggestions: insights?.suggestions ?? [], refreshing: stale, expectedHash: hash }
+            : null
+        }
+      />
     </div>
   );
 }

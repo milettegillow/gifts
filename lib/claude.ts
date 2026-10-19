@@ -13,7 +13,7 @@ const MODEL = "claude-haiku-5-5";
 export const DAILY_CAP = 50;
 
 let client: Anthropic | null = null;
-function anthropic(): Anthropic | null {
+export function anthropic(): Anthropic | null {
   if (!process.env.ANTHROPIC_API_KEY) return null;
   client ??= new Anthropic();
   return client;
@@ -23,7 +23,7 @@ function anthropic(): Anthropic | null {
 // the user is over the cap, in which case the Claude step is skipped.
 // Counting happens before the call, in one statement, so parallel requests
 // can't slip past the cap.
-async function takeCall(userId: string): Promise<boolean> {
+export async function takeCall(userId: string): Promise<boolean> {
   if (!anthropic()) return false;
   try {
     const rows = await sql`
@@ -39,7 +39,13 @@ async function takeCall(userId: string): Promise<boolean> {
   }
 }
 
-function logUsage(purpose: string, userId: string, message: Anthropic.Message) {
+type Usage = {
+  input_tokens: number;
+  output_tokens: number;
+  server_tool_use?: { web_fetch_requests?: number | null; web_search_requests?: number | null } | null;
+};
+
+export function logUsage(purpose: string, userId: string, message: { model: string; stop_reason: string | null; usage: Usage }) {
   const u = message.usage;
   const tools = u.server_tool_use
     ? ` web_fetch=${u.server_tool_use.web_fetch_requests ?? 0} web_search=${u.server_tool_use.web_search_requests ?? 0}`

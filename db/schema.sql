@@ -77,3 +77,6 @@ create table if not exists claude_usage (
   count int not null default 0,
   primary key (user_id, day)
 );
+
+-- What person_insights was generated from (lib/insights.ts), to know when to redo it.
+alter table person_insights add column if not exists source_hash text;
