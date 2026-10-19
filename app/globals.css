@@ -101,7 +101,7 @@ textarea {
   --half-w: calc(50cqw / var(--s));
   --below: calc(58cqh / var(--s));
   --tag-w: 134px;
-  --tag-h: 96px;
+  --tag-h: 112px;
   --hole-x: 14px;
   --hole-y: 43px;
   /* Top-left at (cx + 26, cy + 90), pulled in on screens too small to fit it. */
@@ -157,17 +157,17 @@ textarea {
   border: 0.75px solid #b8862b;
 }
 
-/* The email field, 96 x 22 units. iOS zooms into any input whose computed
+/* The email field, 96 x 20 units. iOS zooms into any input whose computed
    font size is under 16px, and the tag's scale doesn't count, so the input is
    laid out in real px (at least 16px text) and scaled back down into units. */
 .gift-tag-input-box {
   width: 96px;
-  height: 22px;
+  height: 20px;
 }
 
 .gift-tag-input {
   width: calc(96px * var(--s));
-  height: calc(22px * var(--s));
+  height: calc(20px * var(--s));
   padding: 0 calc(4px * var(--s));
   border: calc(1px * var(--s)) solid var(--color-gold-mid);
   background: #fff;

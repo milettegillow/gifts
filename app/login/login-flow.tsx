@@ -136,7 +136,7 @@ export function LoginFlow() {
     setStage("start");
   }
 
-  // Sized in tag units (see .gift-tag-anchor): the tag is 134 x 96.
+  // Sized in tag units (see .gift-tag-anchor): the tag is 134 x 112.
   if (stage === "waiting") {
     return (
       <div className="flex flex-col items-start gap-[3px]">
@@ -152,8 +152,8 @@ export function LoginFlow() {
   }
 
   return (
-    <form onSubmit={submit} className="flex w-[96px] flex-col gap-[4px]">
-      <h1 className="font-display text-[16px] leading-[18px] text-deep-red">Giftbook</h1>
+    <form onSubmit={submit} className="flex w-[96px] flex-col gap-[8px]">
+      <h1 className="font-display text-[14px] leading-[16px] text-deep-red">Giftbook</h1>
       <label className="gift-tag-input-box block">
         <span className="sr-only">Email</span>
         <input
@@ -174,7 +174,7 @@ export function LoginFlow() {
       <button
         type="submit"
         disabled={!loaded || !email.trim()}
-        className="h-[22px] w-full bg-ribbon text-[11px] text-gold-light hover:bg-deep-red disabled:opacity-60"
+        className="h-[20px] w-full bg-ribbon text-[11px] text-gold-light hover:bg-deep-red disabled:opacity-60"
       >
         Open
       </button>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="70 136 200 200">
+  <defs>
+    <linearGradient id="g" gradientUnits="userSpaceOnUse" x1="70" y1="136" x2="270" y2="336">
+      <stop offset="0" stop-color="#a8782a"/>
+      <stop offset=".3" stop-color="#f3d68a"/>
+      <stop offset=".5" stop-color="#c9973e"/>
+      <stop offset=".72" stop-color="#f7e3a6"/>
+      <stop offset="1" stop-color="#a8782a"/>
+    </linearGradient>
+    <linearGradient id="s" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="110" y2="70" spreadMethod="reflect" gradientTransform="translate(170 200)">
+      <stop offset="0" stop-color="#0b0b0d"/>
+      <stop offset=".55" stop-color="#18181c"/>
+      <stop offset=".82" stop-color="#34343a"/>
+      <stop offset="1" stop-color="#4e4e56"/>
+    </linearGradient>
+  </defs>
+  <rect x="70" y="136" width="200" height="200" fill="url(#g)"/>
+  <g fill="url(#s)">
+    <path d="M140.0,200.0 L158.0,200.0 Q168.0,200.0 163.6,209.0 L124.2,289.9" fill="none" stroke="url(#s)" stroke-width="24" stroke-linejoin="round"/>
+    <path d="M113.4,284.6 L107.7,296.3 L123.7,290.8 L129.2,306.8 L134.9,295.1Z"/>
+    <path d="M200.0,200.0 L182.0,200.0 Q172.0,200.0 176.4,209.0 L215.8,289.9" fill="none" stroke="url(#s)" stroke-width="24" stroke-linejoin="round"/>
+    <path d="M205.1,295.1 L210.8,306.8 L216.3,290.8 L232.3,296.3 L226.6,284.6Z"/>
+    <path d="M161.0,189.0 C133.0,166.0 94.0,158.0 88.0,174.8 C82.0,188.0 84.0,206.0 94.0,211.0 C122.0,215.0 137.0,215.0 161.0,211.0Z"/>
+    <path d="M179.0,189.0 C207.0,166.0 246.0,158.0 252.0,174.8 C258.0,188.0 256.0,206.0 246.0,211.0 C218.0,215.0 203.0,215.0 179.0,211.0Z"/>
+    <rect x="156" y="184" width="28" height="32" rx="7"/>
+  </g>
+</svg>
