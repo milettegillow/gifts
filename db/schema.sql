@@ -80,3 +80,18 @@ create table if not exists claude_usage (
 
 -- What person_insights was generated from (lib/insights.ts), to know when to redo it.
 alter table person_insights add column if not exists source_hash text;
+
+-- Short notes about a person ("Likes sudoku"), separate from gifts. Like
+-- gifts, a note can only point at a person owned by the same user.
+create table if not exists notes (
+  id uuid primary key default gen_random_uuid(),
+  person_id uuid not null,
+  user_id text not null references users (clerk_id) on delete cascade,
+  text text not null,
+  done boolean not null default false,
+  done_at timestamptz,
+  created_at timestamptz not null default now(),
+  foreign key (person_id, user_id) references people (id, user_id) on delete cascade
+);
+
+create index if not exists notes_person_id_idx on notes (person_id);

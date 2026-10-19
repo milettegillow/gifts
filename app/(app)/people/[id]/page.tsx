@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { after } from "next/server";
 import { supportedCurrencies } from "@/lib/currencies";
 import { giftImageSrc, listGifts, type GiftRow } from "@/lib/gifts";
-import { generateInsights, getInsights, giftsHash, MIN_GIFTS } from "@/lib/insights";
+import { generateInsights, getInsights, MIN_ITEMS, sourceHash } from "@/lib/insights";
+import { listNotes } from "@/lib/notes";
 import { getPerson } from "@/lib/people";
 import { isStoredImage, isVideoStill } from "@/lib/photos";
 import { pricing } from "@/lib/rates";
@@ -74,16 +75,17 @@ async function PersonView({ params }: { params: PageProps<"/people/[id]">["param
   if (!person) notFound();
   // Refresh prices and stock for links not checked in a day; shows next load.
   after(() => recheckStock(person.id, userId).catch((err) => console.error("Stock re-check failed", err)));
-  const [gifts, prices, insights] = await Promise.all([
+  const [gifts, notes, prices, insights] = await Promise.all([
     listGifts(person.id, userId),
+    listNotes(person.id, userId),
     pricing(settings.currency),
     getInsights(person.id, userId),
   ]);
   // Themes and places to look, for people with enough gifts. When the gifts
   // have changed since they were worked out, redo them after responding and
   // show the old ones meanwhile.
-  const hasInsights = gifts.length >= MIN_GIFTS;
-  const hash = giftsHash(gifts);
+  const hasInsights = gifts.length + notes.length >= MIN_ITEMS;
+  const hash = sourceHash(gifts, notes);
   const stale = hasInsights && insights?.sourceHash !== hash;
   if (stale) {
     after(() => generateInsights(person.id, userId));
@@ -142,6 +144,7 @@ async function PersonView({ params }: { params: PageProps<"/people/[id]">["param
         gifts={cards}
         context={context}
         budget={person.budget}
+        notes={notes}
         insights={
           hasInsights
             ? { themes: insights?.themes ?? [], suggestions: insights?.suggestions ?? [], refreshing: stale, expectedHash: hash }

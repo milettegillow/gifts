@@ -11,6 +11,7 @@ import { GiftCard } from "./gift-card";
 import { GiftSheet, type SheetContext } from "./gift-sheet";
 import type { GiftCardData } from "./gift-types";
 import { InsightsSection, type InsightsData } from "./insights-section";
+import { NotesSection, type NoteData } from "./notes-section";
 
 type Tab = "ideas" | "gifted" | "declined";
 const TABS: { key: Tab; label: string }[] = [
@@ -42,11 +43,13 @@ export function PersonGifts({
   gifts,
   context,
   budget,
+  notes,
   insights,
 }: {
   gifts: GiftCardData[];
   context: SheetContext;
   budget: number | null;
+  notes: NoteData[];
   // Null for people with too few gifts: the section is hidden.
   insights: InsightsData | null;
 }) {
@@ -83,6 +86,7 @@ export function PersonGifts({
       {insights && (
         <InsightsSection personId={context.personId} insights={insights} activeTheme={theme?.label ?? null} onTheme={setThemeLabel} />
       )}
+      <NotesSection personId={context.personId} initial={notes} />
       <nav aria-label="Gifts" className="grid grid-cols-3 border border-ink">
         {TABS.map((t) => (
           <button

@@ -5,24 +5,34 @@ import { z } from "zod";
 import { anthropic, logUsage, takeCall } from "./claude";
 import { sql } from "./db";
 import { listGifts, type GiftRow } from "./gifts";
+import { listNotes, type Note } from "./notes";
 import { isUuid } from "./people";
 import { shopDomain } from "./shipping";
 
 // Themes ("what they like") and places to look, per person, worked out by
-// Claude from everything saved, given and turned down for them. Stored in
+// Claude from everything saved, given and turned down for them, and the notes
+// kept about them. Stored in
 // person_insights with a hash of what they were made from, so they're redone
 // only when that changes.
 
 const MODEL = "claude-sonnet-5-5";
-export const MIN_GIFTS = 3;
+// Gifts and notes together.
+export const MIN_ITEMS = 3;
 
 export type Theme = { label: string; giftIds: string[] };
 export type Suggestion = { name: string; reason: string; query: string };
 export type Insights = { themes: Theme[]; suggestions: Suggestion[]; generatedAt: string; sourceHash: string | null };
 
-// The gift ids with each one's status, rating and declined reason.
-export function giftsHash(gifts: Pick<GiftRow, "id" | "status" | "rating" | "declinedReason">[]): string {
-  const lines = gifts.map((g) => [g.id, g.status, g.rating ?? "", g.declinedReason ?? ""].join("\u0001")).sort();
+// What the insights depend on: each gift's id, status, rating and declined
+// reason, and each note's text and whether it's done.
+export function sourceHash(
+  gifts: Pick<GiftRow, "id" | "status" | "rating" | "declinedReason">[],
+  notes: Pick<Note, "id" | "text" | "done">[],
+): string {
+  const lines = [
+    ...gifts.map((g) => ["g", g.id, g.status, g.rating ?? "", g.declinedReason ?? ""].join("\u0001")),
+    ...notes.map((n) => ["n", n.id, n.text, n.done ? "1" : "0"].join("\u0001")),
+  ].sort();
   return createHash("sha256").update(lines.join("\n")).digest("hex");
 }
 
@@ -50,6 +60,7 @@ How to read the evidence:
 - Gifted items without a rating are moderate evidence.
 - "Decided against" items, and especially their reasons, are evidence too - usually of what to avoid or what they already have.
 - Saved ideas are the gift-giver's guesses, not proof of taste, so they count for less.
+- Notes are things the gift-giver has written down about the person. Open notes are current interests - good evidence. Done notes are already covered (bought, done, or no longer relevant); don't suggest them again, though they still say something about taste.
 
 Output:
 - themes: up to 6. Each has a label of 1-3 words in sentence case (e.g. "Stationery", "Birds", "Japanese ceramics") and gift_refs, the refs (like "g2") of the gifts that show it. Only themes the evidence supports; no theme built only on things they disliked.
@@ -107,13 +118,14 @@ export async function generateInsights(personId: string, userId: string): Promis
   if (inFlight.has(personId)) return "busy";
   inFlight.add(personId);
   try {
-    const gifts = await listGifts(personId, userId);
-    if (gifts.length < MIN_GIFTS) return "too-few";
+    const [gifts, notes] = await Promise.all([listGifts(personId, userId), listNotes(personId, userId)]);
+    if (gifts.length + notes.length < MIN_ITEMS) return "too-few";
     const api = anthropic();
     if (!api || !(await takeCall(userId))) return "capped";
 
     const refs = new Map(gifts.map((g, i) => [`g${i + 1}`, g.id]));
-    const list = gifts.map((g, i) => describe(g, `g${i + 1}`)).join("\n");
+    const list = gifts.map((g, i) => describe(g, `g${i + 1}`)).join("\n") || "(none yet)";
+    const noteLines = notes.map((n) => `- ${n.done ? "(done) " : ""}${n.text}`).join("\n");
     const message = await api.beta.messages.parse({
       model: MODEL,
       max_tokens: 8000,
@@ -121,7 +133,12 @@ export async function generateInsights(personId: string, userId: string): Promis
       fallbacks: "default",
       system: INSTRUCTIONS,
       output_config: { effort: "medium", format: betaZodOutputFormat(Output) },
-      messages: [{ role: "user", content: `Gifts for this person:\n${list}` }],
+      messages: [
+        {
+          role: "user",
+          content: `Gifts for this person:\n${list}${noteLines ? `\n\nNotes about them:\n${noteLines}` : ""}`,
+        },
+      ],
     });
     logUsage("insights", userId, message);
     if (message.stop_reason === "refusal" || !message.parsed_output) return "failed";
@@ -143,7 +160,7 @@ export async function generateInsights(personId: string, userId: string): Promis
 
     await sql`
       insert into person_insights (person_id, themes, suggestions, generated_at, source_hash)
-      select p.id, ${JSON.stringify(themes)}::jsonb, ${JSON.stringify(suggestions)}::jsonb, now(), ${giftsHash(gifts)}
+      select p.id, ${JSON.stringify(themes)}::jsonb, ${JSON.stringify(suggestions)}::jsonb, now(), ${sourceHash(gifts, notes)}
       from people p where p.id = ${personId} and p.user_id = ${userId}
       on conflict (person_id) do update set
         themes = excluded.themes, suggestions = excluded.suggestions,
