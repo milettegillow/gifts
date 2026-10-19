@@ -4,7 +4,7 @@ import { supportedCurrencies } from "@/lib/currencies";
 import { getUserSettings, requireUser } from "@/lib/users";
 import { CurrencyPicker } from "./currency-picker";
 import { geometry } from "@/lib/ribbon";
-import { RibbonDefs, ribbonIds } from "./ribbon-defs";
+import { BowLoop, RibbonDefs, ribbonIds } from "./ribbon-defs";
 
 const ids = ribbonIds("hdr");
 const SCALE = 0.22;
@@ -12,7 +12,7 @@ const SCALE = 0.22;
 // The bow drawn around a knot at (170, 200).
 const cx = 170,
   cy = 200;
-const { loop, piece, knot } = geometry(cx, cy);
+const { loop, front, piece, knot } = geometry(cx, cy);
 
 // The bow's box in the wrap's coordinates: loops, knot and both tails, with
 // room for the tips and shadow.
@@ -93,10 +93,8 @@ function HeaderBow() {
             <path d={tip} fill={`url(#${ids.sat})`} />
           </g>
         ))}
-        <path d={loop(-1, 80, 1, 4)} fill={`url(#${ids.sat})`} />
-        <path d={loop(-1, 80, 1, 4)} fill={`url(#${ids.shL})`} />
-        <path d={loop(1, 80, 1, 4)} fill={`url(#${ids.sat})`} />
-        <path d={loop(1, 80, 1, 4)} fill={`url(#${ids.shR})`} />
+        <BowLoop ids={ids} side="left" loop={loop(-1, 80, 1, 4)} front={front(-1, 80)} />
+        <BowLoop ids={ids} side="right" loop={loop(1, 80, 1, 4)} front={front(1, 80)} />
         <rect {...knot(1)} fill={`url(#${ids.sat})`} />
         <rect {...knot(1)} fill={`url(#${ids.shK})`} />
       </g>

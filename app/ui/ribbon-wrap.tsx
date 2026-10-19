@@ -10,7 +10,7 @@ import {
   type Frame,
   type RibbonState,
 } from "@/lib/ribbon";
-import { RibbonDefs, ribbonIds } from "./ribbon-defs";
+import { BowLoop, RibbonDefs, ribbonIds } from "./ribbon-defs";
 
 // The unwrap plays once per full page load. Module state resets on a full
 // load but survives client-side navigation, so later mounts render nothing.
@@ -55,6 +55,7 @@ export function RibbonWrap({
   const pl = useRef<HTMLDivElement>(null);
   const pr = useRef<HTMLDivElement>(null);
   const sat = useRef<SVGLinearGradientElement>(null);
+  const satD = useRef<SVGLinearGradientElement>(null);
   const origin = useRef<SVGGElement>(null);
   const v = useRef<SVGPathElement>(null);
   const lpg = useRef<SVGGElement>(null);
@@ -64,9 +65,14 @@ export function RibbonWrap({
   const rp = useRef<SVGPathElement>(null);
   const rt = useRef<SVGPathElement>(null);
   const bow = useRef<SVGGElement>(null);
-  const loopL = useRef<SVGPathElement>(null);
+  // Each loop: its clip, lower layer, upper layer and shading.
+  const clipL = useRef<SVGPathElement>(null);
+  const lowerL = useRef<SVGPathElement>(null);
+  const frontL = useRef<SVGPathElement>(null);
   const shadeL = useRef<SVGPathElement>(null);
-  const loopR = useRef<SVGPathElement>(null);
+  const clipR = useRef<SVGPathElement>(null);
+  const lowerR = useRef<SVGPathElement>(null);
+  const frontR = useRef<SVGPathElement>(null);
   const shadeR = useRef<SVGPathElement>(null);
   const knot = useRef<SVGRectElement>(null);
   const knotShade = useRef<SVGRectElement>(null);
@@ -86,7 +92,7 @@ export function RibbonWrap({
     const { W, H, cx, cy } = F;
     const S: RibbonState = tiedState(F);
     origin.current?.setAttribute("transform", `translate(${-cx} ${-cy})`);
-    sat.current?.setAttribute("gradientTransform", `translate(${cx} ${cy})`);
+    for (const g of [sat.current, satD.current]) g?.setAttribute("gradientTransform", `translate(${cx} ${cy})`);
 
     function render() {
       const shapes = ribbonShapes(S, F);
@@ -95,8 +101,11 @@ export function RibbonWrap({
       lt.current?.setAttribute("d", shapes.left[1]);
       rp.current?.setAttribute("d", shapes.right[0]);
       rt.current?.setAttribute("d", shapes.right[1]);
-      for (const el of [loopL.current, shadeL.current]) el?.setAttribute("d", shapes.loopL);
-      for (const el of [loopR.current, shadeR.current]) el?.setAttribute("d", shapes.loopR);
+      // Each loop's clip, lower layer and shading share its outline.
+      for (const el of [clipL.current, lowerL.current, shadeL.current]) el?.setAttribute("d", shapes.loopL);
+      for (const el of [clipR.current, lowerR.current, shadeR.current]) el?.setAttribute("d", shapes.loopR);
+      frontL.current?.setAttribute("d", shapes.frontL);
+      frontR.current?.setAttribute("d", shapes.frontR);
       for (const el of [knot.current, knotShade.current]) {
         if (!el) continue;
         el.setAttribute("x", String(shapes.knot.x));
@@ -142,7 +151,7 @@ export function RibbonWrap({
       <div ref={pl} aria-hidden className="ribbon-paper left-0 w-[calc(50%+1px)]" />
       <div ref={pr} aria-hidden className="ribbon-paper ribbon-paper-right left-1/2 w-1/2" />
       <svg aria-hidden className="absolute inset-0 h-full w-full overflow-visible">
-        <RibbonDefs ids={ids} satAt={[F.cx, F.cy]} satRef={sat} />
+        <RibbonDefs ids={ids} satAt={[F.cx, F.cy]} satRef={sat} satDRef={satD} />
         <g className="ribbon-space">
           <g ref={origin} transform={`translate(${-F.cx} ${-F.cy})`}>
             <g filter={`url(#${ids.ds})`}>
@@ -156,10 +165,8 @@ export function RibbonWrap({
                 <path ref={rt} d={shapes.right[1]} fill={`url(#${ids.sat})`} />
               </g>
               <g ref={bow}>
-                <path ref={loopL} d={shapes.loopL} fill={`url(#${ids.sat})`} />
-                <path ref={shadeL} d={shapes.loopL} fill={`url(#${ids.shL})`} />
-                <path ref={loopR} d={shapes.loopR} fill={`url(#${ids.sat})`} />
-                <path ref={shadeR} d={shapes.loopR} fill={`url(#${ids.shR})`} />
+                <BowLoop ids={ids} side="left" loop={shapes.loopL} front={shapes.frontL} clipRef={clipL} lowerRef={lowerL} frontRef={frontL} shadeRef={shadeL} />
+                <BowLoop ids={ids} side="right" loop={shapes.loopR} front={shapes.frontR} clipRef={clipR} lowerRef={lowerR} frontRef={frontR} shadeRef={shadeR} />
                 {tagString && (
                   <g transform={`translate(${F.cx} ${F.cy})`}>
                     <rect className="gift-tag-string" x="0" y="-0.75" width="1" height="1.5" />

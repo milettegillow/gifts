@@ -51,6 +51,12 @@ export function geometry(cx: number, cy: number) {
     return `M${P(x0,cy-11*h)} C${P(cx+s*(9+.35*Lx),cy-(30*h+t))} ${P(cx+s*(Lx-4),cy-(38*h+t))} ${P(cx+s*(Lx+2),cy-(22*h+t*.8))} C${P(cx+s*(Lx+8),cy-(10*h+t*.5))} ${P(cx+s*(Lx+6),cy+6*h)} ${P(cx+s*(Lx-4),cy+11*h)} C${P(cx+s*(.6*Lx),cy+15*h)} ${P(cx+s*(.3*Lx+9),cy+15*h)} ${P(x0,cy+11*h)}Z`;
   }
 
+  // The upper layer of a loop: drawn inside the loop's own outline (as a
+  // clip), so only its lower edge shows, laid over the darker loop beneath.
+  function front(s: number, Lx: number) {
+    return `M${P(cx,cy-60)} L${P(cx+s*(Lx+20),cy-60)} L${P(cx+s*(Lx+20),cy+2)} C${P(cx+s*(Lx+4),cy-2)} ${P(cx+s*(.55*Lx),cy-1)} ${P(cx+s*9,cy+4)} L${P(cx,cy+4)}Z`;
+  }
+
   // [ribbon path, swallowtail tip]
   function piece(sx: number, tx: number, a: number, len: number): [string, string] {
     const r = a * Math.PI / 180, dx = Math.cos(r), dy = Math.sin(r), g = sx < tx ? 1 : -1;
@@ -70,18 +76,20 @@ export function geometry(cx: number, cy: number) {
     return { x: cx - w / 2, y: cy - h / 2, width: w, height: h, rx: 2 + 5 * k };
   }
 
-  return { loop, piece, knot };
+  return { loop, front, piece, knot };
 }
 
 // Every shape's geometry for a given state.
 export function ribbonShapes(S: RibbonState, F: Frame) {
-  const { loop, piece, knot } = geometry(F.cx, F.cy);
+  const { loop, front, piece, knot } = geometry(F.cx, F.cy);
   return {
     v: `M${P(S.tx,S.ty)} Q${P(S.qx,S.qy)} ${P(S.bx,S.by)}`,
     left: piece(0, S.ltx, S.la, S.ll),
     right: piece(F.W, S.rtx, S.ra, S.rl),
     loopL: loop(-1, Math.max(S.L, 0), Math.max(S.h, 0), S.tilt),
     loopR: loop(1, Math.max(S.R, 0), Math.max(S.hR, 0), S.tilt),
+    frontL: front(-1, Math.max(S.L, 0)),
+    frontR: front(1, Math.max(S.R, 0)),
     knot: knot(S.k),
   };
 }
