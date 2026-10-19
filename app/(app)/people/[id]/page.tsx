@@ -16,7 +16,6 @@ import { Avatar, personRing } from "@/app/ui/avatar";
 import { PersonSkeleton } from "@/app/ui/skeletons";
 import { linkButtonClass } from "@/app/ui/styles";
 import { EditPerson } from "./edit-person";
-import { AddGift } from "./gift-grid";
 import type { GiftCardData } from "./gift-types";
 import { PersonGifts } from "./person-gifts";
 
@@ -129,16 +128,15 @@ async function PersonView({ params }: { params: PageProps<"/people/[id]">["param
 
   return (
     <div className="flex flex-col gap-8 pt-2">
-      <div className="flex items-center justify-between">
-        <Link href="/" className={linkButtonClass}>
-          All people
-        </Link>
-        <EditPerson person={{ id: person.id, name: person.name, photo: person.photo }} />
-      </div>
+      <Link href="/" className={`${linkButtonClass} self-start`}>
+        All people
+      </Link>
       <div className="flex items-center gap-4">
         <Avatar name={person.name} photo={person.photo} size={72} className={personRing} />
-        <h1 className="min-w-0 flex-1 font-display text-3xl break-words text-ink">{person.name}</h1>
-        <AddGift context={context} />
+        <div className="flex min-w-0 flex-1 items-center gap-1">
+          <h1 className="min-w-0 font-display text-3xl break-words text-ink">{person.name}</h1>
+          <EditPerson person={{ id: person.id, name: person.name, photo: person.photo }} />
+        </div>
       </div>
       <PersonGifts
         gifts={cards}

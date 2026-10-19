@@ -39,12 +39,12 @@ export function OccasionFields({
           autoComplete="off"
           value={occasion}
           onChange={(e) => onOccasion(e.target.value)}
-          className={fieldClass}
+          className={`${fieldClass} rounded-xl`}
         />
       </div>
       <div className="flex flex-col gap-2">
         <label htmlFor="gift-date">Date</label>
-        <input id="gift-date" type="date" required value={date} onChange={(e) => onDate(e.target.value)} className={fieldClass} />
+        <input id="gift-date" type="date" required value={date} onChange={(e) => onDate(e.target.value)} className={`${fieldClass} rounded-xl`} />
       </div>
     </>
   );

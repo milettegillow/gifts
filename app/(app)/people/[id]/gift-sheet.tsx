@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { localToday, requestJson, resizePhoto } from "@/lib/client";
 import { Sheet } from "@/app/ui/sheet";
 import { buttonClass, fieldClass, linkButtonClass } from "@/app/ui/styles";
+
+// Fields in this sheet have softer, 12px corners.
+const sheetField = `${fieldClass} rounded-xl`;
 import { PRESENT_IMAGE, type GiftEdit, type StockStatus } from "./gift-types";
 import { OccasionFields } from "./occasion-fields";
 import { Stars } from "./stars";
@@ -25,7 +28,7 @@ type Scraped = {
 
 export type SheetContext = { personId: string; currencies: string[]; defaultCurrency: string };
 
-// Add a gift (a link to fetch, or an idea of your own), or edit one.
+// A new idea (something to buy, or something to make), or edit one.
 export function GiftSheet({
   open,
   onClose,
@@ -41,7 +44,7 @@ export function GiftSheet({
   past?: boolean;
 }) {
   return (
-    <Sheet open={open} onClose={onClose} label={gift ? "Edit gift" : past ? "Add past gift" : "Add a gift"}>
+    <Sheet open={open} onClose={onClose} label={gift ? "Edit gift" : past ? "Add past gift" : "New idea"}>
       <GiftForm onClose={onClose} context={context} gift={gift} past={past} />
     </Sheet>
   );
@@ -97,6 +100,24 @@ function GiftForm({
   const [photo, setPhoto] = useState<Blob | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [removed, setRemoved] = useState(false);
+
+  // Each kind keeps its own link, title and price while you switch between
+  // them, so a product link never turns up as instructions.
+  const drafts = useRef<Record<Kind, { url: string; title: string; price: string }>>({
+    link: { url: "", title: "", price: "" },
+    idea: { url: "", title: "", price: "" },
+  });
+
+  function switchKind(next: Kind) {
+    if (next === kind) return;
+    drafts.current[kind] = { url, title, price };
+    const other = drafts.current[next];
+    setUrl(other.url);
+    setTitle(other.title);
+    setPrice(other.price);
+    setKind(next);
+    setError(null);
+  }
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -238,7 +259,7 @@ function GiftForm({
         }}
         className="flex flex-col gap-5"
       >
-        <h2 className="font-display text-2xl text-ink">Mark as gifted</h2>
+        <h2 className="font-display text-[26px] leading-tight text-ink">Mark as gifted</h2>
         <OccasionFields occasion={occasion} onOccasion={setOccasion} date={date} onDate={setDate} />
         {error && <p role="alert" className="text-ink">{error}</p>}
         <div className="flex items-center gap-5">
@@ -262,9 +283,9 @@ function GiftForm({
         }}
         className="flex flex-col gap-5"
       >
-        <h2 className="font-display text-2xl text-ink">Decided against</h2>
+        <h2 className="font-display text-[26px] leading-tight text-ink">Decided against</h2>
         <Field label="Reason" htmlFor="gift-reason">
-          <textarea id="gift-reason" rows={3} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} className={`${fieldClass} resize-y`} />
+          <textarea id="gift-reason" rows={3} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} className={`${sheetField} resize-y`} />
         </Field>
         {error && <p role="alert" className="text-ink">{error}</p>}
         <div className="flex items-center gap-5">
@@ -282,7 +303,7 @@ function GiftForm({
   if (gift && confirming) {
     return (
       <div className="flex flex-col gap-5">
-        <h2 className="font-display text-2xl text-ink">Delete this gift?</h2>
+        <h2 className="font-display text-[26px] leading-tight text-ink">Delete this gift?</h2>
         {error && <p role="alert" className="text-ink">{error}</p>}
         <div className="flex items-center gap-5">
           <button type="button" onClick={remove} disabled={busy} className={buttonClass}>
@@ -307,13 +328,13 @@ function GiftForm({
           autoComplete="off"
           value={price}
           onChange={(e) => setPrice(e.target.value)}
-          className={fieldClass}
+          className={sheetField}
         />
         <select
           aria-label="Currency"
           value={currency}
           onChange={(e) => setCurrency(e.target.value)}
-          className={`${fieldClass} w-auto`}
+          className={`${sheetField} w-auto`}
         >
           {currencies.map((c) => (
             <option key={c} value={c}>
@@ -327,23 +348,20 @@ function GiftForm({
 
   return (
     <form onSubmit={save} className="flex flex-col gap-5">
-      <h2 className="font-display text-2xl text-ink">{editing ? "Edit gift" : past ? "Add past gift" : "Add a gift"}</h2>
+      <h2 className="font-display text-[26px] leading-tight text-ink">{editing ? "Edit gift" : past ? "Add past gift" : "New idea"}</h2>
 
       {!editing && (
-        <div role="radiogroup" aria-label="Kind of gift" className="grid grid-cols-2 border border-ink">
+        <div role="radiogroup" aria-label="Kind of idea" className="grid grid-cols-2 gap-1 rounded-full border border-ink p-1">
           {(["link", "idea"] as const).map((k) => (
             <button
               key={k}
               type="button"
               role="radio"
               aria-checked={kind === k}
-              onClick={() => {
-                setKind(k);
-                setError(null);
-              }}
-              className={`py-2.5 ${kind === k ? "bg-ink text-gold-text" : "text-ink"}`}
+              onClick={() => switchKind(k)}
+              className={`min-h-11 rounded-full px-2 py-2 leading-tight ${kind === k ? "bg-ink text-gold-text" : "text-ink"}`}
             >
-              {k === "link" ? "Link" : "Own idea"}
+              {k === "link" ? "Something to buy" : "Make it yourself"}
             </button>
           ))}
         </div>
@@ -351,7 +369,7 @@ function GiftForm({
 
       {kind === "link" ? (
         <>
-          <Field label="Link" htmlFor="gift-url">
+          <Field label="Product link" htmlFor="gift-url">
             <div className="flex gap-2">
               <input
                 id="gift-url"
@@ -367,13 +385,15 @@ function GiftForm({
                     void fetchPage();
                   }
                 }}
-                className={fieldClass}
+                className={sheetField}
               />
               <button
                 type="button"
                 onClick={fetchPage}
-                disabled={!url.trim() || fetching}
-                className={`${buttonClass} shrink-0 px-4`}
+                // Only looks disabled while there's no link; while fetching it just says so.
+                disabled={!url.trim()}
+                aria-busy={fetching}
+                className={`${buttonClass} shrink-0 px-5`}
               >
                 {fetching ? "Fetching…" : "Fetch"}
               </button>
@@ -383,17 +403,17 @@ function GiftForm({
           {showFields && (
             <>
               <Field label="Title" htmlFor="gift-title">
-                <input id="gift-title" type="text" required maxLength={200} value={title} onChange={(e) => setTitle(e.target.value)} className={fieldClass} />
+                <input id="gift-title" type="text" required maxLength={200} value={title} onChange={(e) => setTitle(e.target.value)} className={sheetField} />
               </Field>
               <Field label="Image" htmlFor="gift-image">
                 <div className="flex items-center gap-3">
                   <ImagePreview src={image.trim() || null} alt={title.trim() || "Gift"} />
-                  <input id="gift-image" type="url" inputMode="url" autoComplete="off" value={image} onChange={(e) => setImage(e.target.value)} className={fieldClass} />
+                  <input id="gift-image" type="url" inputMode="url" autoComplete="off" value={image} onChange={(e) => setImage(e.target.value)} className={sheetField} />
                 </div>
               </Field>
               {priceRow("Price")}
               <Field label="Delivery" htmlFor="gift-shipping">
-                <input id="gift-shipping" type="text" maxLength={200} value={shipping} onChange={(e) => setShipping(e.target.value)} className={fieldClass} />
+                <input id="gift-shipping" type="text" maxLength={200} value={shipping} onChange={(e) => setShipping(e.target.value)} className={sheetField} />
               </Field>
               <Field label="Stock" htmlFor="gift-stock">
                 <select
@@ -404,7 +424,7 @@ function GiftForm({
                     // Picked by hand: the daily re-check won't change it.
                     setStock({ status, count: status === "low" ? stock.count : null, manual: true });
                   }}
-                  className={fieldClass}
+                  className={sheetField}
                 >
                   <option value="in_stock">In stock</option>
                   <option value="low">Low</option>
@@ -418,8 +438,8 @@ function GiftForm({
         </>
       ) : (
         <>
-          <Field label="Title" htmlFor="gift-title">
-            <input id="gift-title" type="text" required maxLength={200} value={title} onChange={(e) => setTitle(e.target.value)} className={fieldClass} />
+          <Field label="What is it?" htmlFor="gift-title">
+            <input id="gift-title" type="text" required maxLength={200} value={title} onChange={(e) => setTitle(e.target.value)} className={sheetField} />
           </Field>
           <div className="flex items-center gap-4">
             <ImagePreview src={shownPhoto} alt={title.trim() || "Gift"} />
@@ -451,12 +471,21 @@ function GiftForm({
               )}
             </div>
           </div>
-          <Field label="Link" htmlFor="gift-url">
-            <input id="gift-url" type="url" inputMode="url" autoComplete="off" value={url} onChange={(e) => setUrl(e.target.value)} className={fieldClass} />
+          <Field label="Link to instructions" htmlFor="gift-url">
+            <input
+              id="gift-url"
+              type="url"
+              inputMode="url"
+              autoComplete="off"
+              placeholder="Recipe, video or tutorial"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className={sheetField}
+            />
           </Field>
-          {priceRow("Estimated price")}
+          {priceRow("Estimated cost")}
           <Field label="Notes" htmlFor="gift-notes">
-            <textarea id="gift-notes" rows={3} maxLength={2000} value={notes} onChange={(e) => setNotes(e.target.value)} className={`${fieldClass} resize-y`} />
+            <textarea id="gift-notes" rows={3} maxLength={2000} value={notes} onChange={(e) => setNotes(e.target.value)} className={`${sheetField} resize-y`} />
           </Field>
         </>
       )}

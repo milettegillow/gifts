@@ -86,9 +86,11 @@ function Tags({ gift }: { gift: GiftCardData }) {
   const ideas = gift.status === "saved";
   const shipping = ideas ? gift.shipping : null;
   const stock = ideas ? gift.stock : null;
-  if (!gift.price && !shipping && !stock) return null;
+  const diy = gift.kind === "idea";
+  if (!diy && !gift.price && !shipping && !stock) return null;
   return (
     <span className="flex flex-wrap gap-1">
+      {diy && <span className={`${tag} shadow-[inset_0_0_0_1px_var(--color-ink)]`}>DIY</span>}
       {gift.price && <span className={`${tag} bg-ink text-gold-text`}>{gift.price}</span>}
       {shipping && <span className={`${tag} shadow-[inset_0_0_0_1px_var(--color-ink)]`}>{shipping}</span>}
       {stock && <span className={`${tag} bg-ink text-gold-text`}>{stock.text}</span>}

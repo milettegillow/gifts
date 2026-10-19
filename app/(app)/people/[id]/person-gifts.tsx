@@ -60,6 +60,7 @@ export function PersonGifts({
 
   const [editing, setEditing] = useState<GiftCardData | null>(null);
   const [addingPast, setAddingPast] = useState(false);
+  const [addingIdea, setAddingIdea] = useState(false);
   const [planning, setPlanning] = useState(false);
   const [ticked, setTicked] = useState<Set<string>>(new Set());
   // A theme chip narrows the current tab to that theme's gifts.
@@ -101,9 +102,18 @@ export function PersonGifts({
         ))}
       </nav>
 
+      {tab === "ideas" && byStatus.ideas.length === 0 && (
+        <button type="button" onClick={() => setAddingIdea(true)} className={`${buttonClass} self-start`}>
+          New idea
+        </button>
+      )}
+
       {tab === "ideas" && byStatus.ideas.length > 0 && (
         <>
           <div className="flex flex-wrap items-center gap-3">
+            <button type="button" onClick={() => setAddingIdea(true)} className={buttonClass}>
+              New idea
+            </button>
             <FilterSort filters={filters} onChange={setFilters} currency={context.defaultCurrency} matches={shown.length} />
             <button
               type="button"
@@ -161,6 +171,7 @@ export function PersonGifts({
 
       <GiftSheet open={!!editing} onClose={() => setEditing(null)} context={context} gift={editing?.edit} />
       <GiftSheet open={addingPast} onClose={() => setAddingPast(false)} context={context} past />
+      <GiftSheet open={addingIdea} onClose={() => setAddingIdea(false)} context={context} />
     </div>
   );
 }
@@ -289,7 +300,7 @@ function ActiveFilters({ filters, onChange, currency }: { filters: Filters; onCh
     chips.push({ label, clear: { min: null, max: null } });
   }
   if (filters.delivery != null) chips.push({ label: `Up to ${filters.delivery} days`, clear: { delivery: null } });
-  if (filters.type) chips.push({ label: filters.type === "link" ? "Links" : "Own ideas", clear: { type: null } });
+  if (filters.type) chips.push({ label: filters.type === "link" ? "To buy" : "DIY", clear: { type: null } });
   if (filters.sort !== "newest") chips.push({ label: SORT_LABELS[filters.sort], clear: { sort: "newest" } });
   if (chips.length === 0) return null;
   return (
@@ -384,8 +395,8 @@ function FilterControls({
           className={fieldClass}
         >
           <option value="">All</option>
-          <option value="link">Links</option>
-          <option value="idea">Own ideas</option>
+          <option value="link">To buy</option>
+          <option value="idea">DIY</option>
         </select>
       </label>
       <label className="flex flex-col gap-1">

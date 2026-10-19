@@ -95,7 +95,7 @@ function sentenceCase(s: string) {
 function describe(g: GiftRow, ref: string): string {
   const parts = [
     `${ref}: "${g.title}"`,
-    g.kind === "idea" ? "own idea" : "link",
+    g.kind === "idea" ? "DIY (made by the gift-giver)" : "something to buy",
     g.status === "saved" ? "status: saved idea" : g.status === "gifted" ? "status: gifted" : "status: decided against",
   ];
   const shop = g.url ? shopDomain(g.url) : null;

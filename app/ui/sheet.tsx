@@ -63,7 +63,7 @@ export function Sheet({
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
       onTouchCancel={onTouchEnd}
-      className="mx-0 mt-auto mb-0 max-h-[90dvh] w-full max-w-none overflow-y-auto overscroll-contain bg-cream p-5 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-ink backdrop:bg-ink/50 sm:m-auto sm:w-[420px] sm:max-w-[calc(100vw-2rem)] sm:p-6"
+      className="mx-0 mt-auto mb-0 rounded-t-[20px] sm:rounded-[20px] max-h-[90dvh] w-full max-w-none overflow-y-auto overscroll-contain bg-cream p-5 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-ink backdrop:bg-ink/50 sm:m-auto sm:w-[420px] sm:max-w-[calc(100vw-2rem)] sm:p-6"
     >
       <span aria-hidden className="mx-auto mb-3 block h-1 w-10 bg-gold-mid sm:hidden" />
       {open && children}
