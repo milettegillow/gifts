@@ -7,8 +7,7 @@ import { localToday, requestJson, resizePhoto } from "@/lib/client";
 import { Sheet } from "@/app/ui/sheet";
 import { buttonClass, fieldClass, linkButtonClass } from "@/app/ui/styles";
 
-// Fields in this sheet have softer, 12px corners.
-const sheetField = `${fieldClass} rounded-xl`;
+const sheetField = fieldClass;
 import { PRESENT_IMAGE, type GiftEdit, type StockStatus } from "./gift-types";
 import { OccasionFields } from "./occasion-fields";
 import { Stars } from "./stars";
@@ -359,7 +358,7 @@ function GiftForm({
               role="radio"
               aria-checked={kind === k}
               onClick={() => switchKind(k)}
-              className={`min-h-11 rounded-full px-2 py-2 leading-tight ${kind === k ? "bg-ink text-gold-text" : "text-ink"}`}
+              className={`min-h-11 rounded-full px-2 py-2 leading-tight transition-colors ${kind === k ? "bg-ink text-gold-text hover:bg-ink-hover" : "text-ink hover:bg-ink/8"}`}
             >
               {k === "link" ? "Something to buy" : "Make it yourself"}
             </button>

@@ -129,9 +129,11 @@ export function InsightsSection({
                   type="button"
                   aria-pressed={on}
                   onClick={() => onTheme(on ? null : t.label)}
-                  className={`min-h-11 rounded-full px-4 py-1.5 ${on ? "text-ink shadow-[inset_0_0_0_2px_var(--color-ink)]" : "bg-ink text-gold-text"}`}
+                  className={`inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 py-1.5 transition-colors ${on ? "bg-gold-text text-ink shadow-[inset_0_0_0_1px_var(--color-ink)]" : "bg-ink text-gold-text hover:bg-ink-hover"}`}
                 >
                   {t.label}
+                  {/* Selected: it's filtering, and tapping again clears it. */}
+                  {on && <span aria-hidden>×</span>}
                 </button>
               </li>
             );

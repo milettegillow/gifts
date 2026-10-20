@@ -174,7 +174,7 @@ export function LoginFlow() {
       <button
         type="submit"
         disabled={!loaded || !email.trim()}
-        className="gift-tag-open h-[20px] w-full rounded-full bg-ink text-[11px] text-gold-text hover:bg-ink/85 disabled:opacity-60"
+        className="gift-tag-open h-[20px] w-full rounded-full bg-ink text-[11px] text-gold-text hover:bg-ink-hover disabled:opacity-60"
       >
         Open
       </button>

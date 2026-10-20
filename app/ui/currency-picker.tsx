@@ -32,7 +32,7 @@ export function CurrencyPicker({ value, options }: { value: string; options: str
         value={currency}
         disabled={saving}
         onChange={(e) => change(e.target.value)}
-        className="min-h-11 cursor-pointer appearance-none rounded-full bg-ink py-1 pr-8 pl-4 text-gold-text disabled:opacity-80"
+        className="min-h-11 cursor-pointer appearance-none rounded-full bg-ink py-1 pr-8 pl-4 text-gold-text transition-colors hover:bg-ink-hover disabled:opacity-80"
       >
         {options.map((code) => (
           <option key={code} value={code} className="bg-cream text-ink">

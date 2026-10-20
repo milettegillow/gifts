@@ -88,14 +88,14 @@ export function PersonGifts({
         <InsightsSection personId={context.personId} insights={insights} activeTheme={theme?.label ?? null} onTheme={setThemeLabel} />
       )}
       <NotesSection personId={context.personId} initial={notes} />
-      <nav aria-label="Gifts" className="grid grid-cols-3 border border-ink">
+      <nav aria-label="Gifts" className="grid grid-cols-3 gap-1 rounded-full border border-ink p-1">
         {TABS.map((t) => (
           <button
             key={t.key}
             type="button"
             aria-current={tab === t.key ? "page" : undefined}
             onClick={() => update({ tab: t.key === "ideas" ? null : t.key }, true)}
-            className={`min-h-11 px-1 py-2 leading-tight ${tab === t.key ? "bg-ink text-gold-text" : "text-ink"}`}
+            className={`min-h-11 rounded-full px-1 py-1.5 leading-tight transition-colors ${tab === t.key ? "bg-ink text-gold-text" : "text-ink hover:bg-ink/8"}`}
           >
             {t.label} {byStatus[t.key].length}
           </button>
@@ -122,7 +122,7 @@ export function PersonGifts({
                 setPlanning(!planning);
                 setTicked(new Set());
               }}
-              className={`${pillClass} ${planning ? "bg-ink text-gold-text" : "text-ink"}`}
+              className={`${pillClass} ${planning ? "bg-ink text-gold-text hover:bg-ink-hover" : "text-ink"}`}
             >
               Plan
             </button>
@@ -311,9 +311,9 @@ function ActiveFilters({ filters, onChange, currency }: { filters: Filters; onCh
             type="button"
             aria-label={`Remove ${c.label}`}
             onClick={() => onChange({ ...filters, ...c.clear })}
-            className="inline-flex min-h-11 items-center"
+            className="group inline-flex min-h-11 items-center"
           >
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 text-gold-text">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 text-gold-text transition-colors group-hover:bg-ink-hover">
               {c.label}
               <span aria-hidden>×</span>
             </span>

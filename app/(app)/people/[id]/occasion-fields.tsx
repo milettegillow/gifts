@@ -26,7 +26,7 @@ export function OccasionFields({
               type="button"
               aria-pressed={occasion === o}
               onClick={() => onOccasion(occasion === o ? "" : o)}
-              className={`min-h-11 rounded-full border border-ink px-4 py-1.5 ${occasion === o ? "bg-ink text-gold-text" : "text-ink"}`}
+              className={`min-h-11 rounded-full border border-ink px-4 py-1.5 transition-colors ${occasion === o ? "bg-ink text-gold-text hover:bg-ink-hover" : "text-ink hover:bg-ink/8"}`}
             >
               {o}
             </button>
@@ -39,12 +39,12 @@ export function OccasionFields({
           autoComplete="off"
           value={occasion}
           onChange={(e) => onOccasion(e.target.value)}
-          className={`${fieldClass} rounded-xl`}
+          className={fieldClass}
         />
       </div>
       <div className="flex flex-col gap-2">
         <label htmlFor="gift-date">Date</label>
-        <input id="gift-date" type="date" required value={date} onChange={(e) => onDate(e.target.value)} className={`${fieldClass} rounded-xl`} />
+        <input id="gift-date" type="date" required value={date} onChange={(e) => onDate(e.target.value)} className={fieldClass} />
       </div>
     </>
   );

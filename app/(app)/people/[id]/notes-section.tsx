@@ -98,7 +98,7 @@ export function NotesSection({ personId, initial }: { personId: string; initial:
           type="submit"
           aria-label="Add note"
           disabled={!draft.trim()}
-          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-ink text-2xl leading-none text-gold-text disabled:opacity-60"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-ink text-2xl leading-none text-gold-text transition-colors hover:bg-ink-hover disabled:opacity-40 disabled:hover:bg-ink"
         >
           +
         </button>
@@ -190,7 +190,7 @@ function NoteRow({
         </button>
       )}
       <div
-        className="relative flex items-center gap-1 transition-transform duration-150"
+        className="group/row relative flex items-start gap-1 rounded-[10px] transition-[transform,translate,background-color] duration-150 hover:bg-ink/6 focus-within:bg-ink/6"
         style={{ transform: offset ? `translateX(${offset}px)` : undefined }}
       >
         <button
@@ -200,13 +200,17 @@ function NoteRow({
           aria-label={note.done ? `Untick ${note.text}` : `Tick ${note.text}`}
           disabled={saving}
           onClick={onToggle}
-          className="flex size-11 shrink-0 items-center justify-center"
+          className="group/tick flex size-11 shrink-0 items-center justify-center"
         >
+          {/* 20px ring, centred on the text's first line. Hover shows a faint
+              check; done is filled ink with a gold check. */}
           <span
             aria-hidden
-            className={`flex size-6 items-center justify-center rounded-full border-2 border-ink text-sm leading-none ${note.done ? "bg-ink text-gold-text" : ""}`}
+            className={`flex size-5 items-center justify-center rounded-full text-xs leading-none shadow-[inset_0_0_0_1.5px_var(--color-ink)] ${
+              note.done ? "bg-ink text-gold-text" : "text-transparent group-hover/tick:text-ink/40 group-focus-visible/tick:text-ink/40"
+            }`}
           >
-            {note.done ? "✓" : ""}
+            ✓
           </span>
         </button>
         {editing ? (
@@ -226,7 +230,7 @@ function NoteRow({
             type="button"
             disabled={saving}
             onClick={() => (offset < 0 ? setOffset(0) : setEditing(true))}
-            className={`min-h-11 flex-1 py-2 text-left break-words ${note.done ? "line-through opacity-55" : ""}`}
+            className={`min-h-11 flex-1 py-2.5 text-left leading-6 break-words ${note.done ? "line-through opacity-55" : ""}`}
           >
             {note.text}
           </button>
@@ -236,7 +240,8 @@ function NoteRow({
           aria-label={`Delete ${note.text}`}
           disabled={saving}
           onClick={onDelete}
-          className="hidden size-11 shrink-0 items-center justify-center rounded-full text-2xl leading-none text-ink hover:bg-ink hover:text-gold-text sm:flex"
+          // Always there on phones; on desktop, shown when the row is hovered or focused.
+          className="flex size-11 shrink-0 items-center justify-center rounded-full text-2xl leading-none text-ink transition-opacity hover:bg-ink hover:text-gold-text sm:opacity-0 sm:group-hover/row:opacity-100 sm:group-focus-within/row:opacity-100"
         >
           ×
         </button>

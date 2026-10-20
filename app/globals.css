@@ -3,6 +3,7 @@
 /* Gold foil and black satin. */
 @theme {
   --color-ink: #0b0b0d;
+  --color-ink-hover: #2a2a30; /* ink buttons and pills on hover */
   --color-text: #14100a;
   --color-gold-text: #f3d68a; /* text on black */
   --color-card: rgba(255, 250, 240, 0.55);
@@ -86,6 +87,17 @@ option {
   select,
   textarea {
     border-radius: 0;
+  }
+
+  /* Anything you can click shows it. */
+  button:not(:disabled),
+  select:not(:disabled),
+  summary,
+  [role="radio"],
+  [role="checkbox"],
+  label:has(> input[type="file"]),
+  label:has(> input[type="checkbox"]) {
+    cursor: pointer;
   }
 }
 
