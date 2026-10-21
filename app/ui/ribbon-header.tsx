@@ -81,8 +81,8 @@ function HeaderBow() {
             <path d={tip} fill={`url(#${ids.sat})`} />
           </g>
         ))}
-        <BowLoop ids={ids} side="left" loop={loop(-1, 80, 1, 4)} front={front(-1, 80)} />
-        <BowLoop ids={ids} side="right" loop={loop(1, 80, 1, 4)} front={front(1, 80)} />
+        <BowLoop ids={ids} side="left" loop={loop(-1, 80, 1, 4)} front={front(-1, 80, 1, 4)} />
+        <BowLoop ids={ids} side="right" loop={loop(1, 80, 1, 4)} front={front(1, 80, 1, 4)} />
         <rect {...knot(1)} fill={`url(#${ids.sat})`} />
         <rect {...knot(1)} fill={`url(#${ids.shK})`} />
       </g>

@@ -12,8 +12,6 @@ export function ribbonIds(prefix: string) {
     ds: id("ds"),
     satD: id("satD"),
     fs: id("fs"),
-    clipL: id("clipL"),
-    clipR: id("clipR"),
   };
 }
 
@@ -24,18 +22,13 @@ export type RibbonIds = ReturnType<typeof ribbonIds>;
 export function RibbonDefs({
   ids,
   satAt = [0, 0],
-  satRef,
-  satDRef,
 }: {
   ids: RibbonIds;
   satAt?: [number, number];
-  satRef?: Ref<SVGLinearGradientElement>;
-  satDRef?: Ref<SVGLinearGradientElement>;
 }) {
   return (
     <defs>
       <linearGradient
-        ref={satRef}
         id={ids.sat}
         gradientTransform={`translate(${satAt[0]} ${satAt[1]})`}
         gradientUnits="userSpaceOnUse"
@@ -51,7 +44,6 @@ export function RibbonDefs({
         <stop offset="1" stopColor="#4e4e56" />
       </linearGradient>
       <linearGradient
-        ref={satDRef}
         id={ids.satD}
         gradientTransform={`translate(${satAt[0]} ${satAt[1]})`}
         gradientUnits="userSpaceOnUse"
@@ -91,15 +83,14 @@ export function RibbonDefs({
   );
 }
 
-// One bow loop in two layers of ribbon, clipped to the loop's outline: the
-// darker lower layer, the upper layer casting a shadow onto it, then the
-// shading across both. `loop` and `front` come from geometry().
+// One bow loop in two layers of ribbon: the darker lower layer, the upper
+// layer casting a shadow onto it, then the shading across both. `loop` and
+// `front` come from geometry().
 export function BowLoop({
   ids,
   side,
   loop,
   front,
-  clipRef,
   lowerRef,
   frontRef,
   shadeRef,
@@ -108,25 +99,18 @@ export function BowLoop({
   side: "left" | "right";
   loop: string;
   front: string;
-  // For the wrap, which redraws all four as the bow unties.
-  clipRef?: Ref<SVGPathElement>;
+  // For the wrap, which redraws all three as the bow unties.
   lowerRef?: Ref<SVGPathElement>;
   frontRef?: Ref<SVGPathElement>;
   shadeRef?: Ref<SVGPathElement>;
 }) {
-  const clipId = side === "left" ? ids.clipL : ids.clipR;
   return (
     <>
-      <clipPath id={clipId}>
-        <path ref={clipRef} d={loop} />
-      </clipPath>
-      <g clipPath={`url(#${clipId})`}>
-        <path ref={lowerRef} d={loop} fill={`url(#${ids.satD})`} />
-        <g filter={`url(#${ids.fs})`}>
-          <path ref={frontRef} d={front} fill={`url(#${ids.sat})`} />
-        </g>
-        <path ref={shadeRef} d={loop} fill={`url(#${side === "left" ? ids.shL : ids.shR})`} />
+      <path ref={lowerRef} d={loop} fill={`url(#${ids.satD})`} />
+      <g filter={`url(#${ids.fs})`}>
+        <path ref={frontRef} d={front} fill={`url(#${ids.sat})`} />
       </g>
+      <path ref={shadeRef} d={loop} fill={`url(#${side === "left" ? ids.shL : ids.shR})`} />
     </>
   );
 }

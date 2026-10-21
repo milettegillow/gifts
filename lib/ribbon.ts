@@ -51,10 +51,12 @@ export function geometry(cx: number, cy: number) {
     return `M${P(x0,cy-11*h)} C${P(cx+s*(9+.35*Lx),cy-(30*h+t))} ${P(cx+s*(Lx-4),cy-(38*h+t))} ${P(cx+s*(Lx+2),cy-(22*h+t*.8))} C${P(cx+s*(Lx+8),cy-(10*h+t*.5))} ${P(cx+s*(Lx+6),cy+6*h)} ${P(cx+s*(Lx-4),cy+11*h)} C${P(cx+s*(.6*Lx),cy+15*h)} ${P(cx+s*(.3*Lx+9),cy+15*h)} ${P(x0,cy+11*h)}Z`;
   }
 
-  // The upper layer of a loop: drawn inside the loop's own outline (as a
-  // clip), so only its lower edge shows, laid over the darker loop beneath.
-  function front(s: number, Lx: number) {
-    return `M${P(cx,cy-60)} L${P(cx+s*(Lx+20),cy-60)} L${P(cx+s*(Lx+20),cy+2)} C${P(cx+s*(Lx+4),cy-2)} ${P(cx+s*(.55*Lx),cy-1)} ${P(cx+s*9,cy+4)} L${P(cx,cy+4)}Z`;
+  // The upper layer of a loop: sits inside the loop on its own, from its top
+  // edge round the outer end to a lower edge across the middle, laid over the
+  // darker loop beneath. Collapses with the loop as it unties.
+  function front(s: number, Lx: number, h: number, t: number) {
+    const x0 = cx + s * 9;
+    return `M${P(x0,cy-11*h)} C${P(cx+s*(9+.35*Lx),cy-(30*h+t))} ${P(cx+s*(Lx-4),cy-(38*h+t))} ${P(cx+s*(Lx+2),cy-(22*h+t*.8))} Q${P(cx+s*(Lx+8),cy-8*h)} ${P(cx+s*(Lx+6),cy+2*h)} C${P(cx+s*(Lx+4),cy-2*h)} ${P(cx+s*(.55*Lx),cy-1*h)} ${P(cx+s*9,cy+4*h)}Z`;
   }
 
   // [ribbon path, swallowtail tip]
@@ -88,8 +90,25 @@ export function ribbonShapes(S: RibbonState, F: Frame) {
     right: piece(F.W, S.rtx, S.ra, S.rl),
     loopL: loop(-1, Math.max(S.L, 0), Math.max(S.h, 0), S.tilt),
     loopR: loop(1, Math.max(S.R, 0), Math.max(S.hR, 0), S.tilt),
-    frontL: front(-1, Math.max(S.L, 0)),
-    frontR: front(1, Math.max(S.R, 0)),
+    frontL: front(-1, Math.max(S.L, 0), Math.max(S.h, 0), S.tilt),
+    frontR: front(1, Math.max(S.R, 0), Math.max(S.hR, 0), S.tilt),
     knot: knot(S.k),
+  };
+}
+
+// The login tag: 134 x 112 units, top-left at (cx + 26, cy + 90), pulled in on
+// screens too small to fit it, and tilted about its top-left corner. Returns
+// its top-left and the hole's centre, relative to the knot.
+export const TAG = { x: 26, y: 90, w: 134, h: 112, holeX: 14, holeY: 43, tilt: -4 };
+
+export function tagPlace({ W, H }: Frame) {
+  const x = Math.min(TAG.x, W / 2 - 8 - TAG.w);
+  const y = Math.min(TAG.y, H * 0.58 - 12 - TAG.h);
+  const r = (TAG.tilt * Math.PI) / 180;
+  return {
+    x,
+    y,
+    hx: x + TAG.holeX * Math.cos(r) - TAG.holeY * Math.sin(r),
+    hy: y + TAG.holeX * Math.sin(r) + TAG.holeY * Math.cos(r),
   };
 }

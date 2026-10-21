@@ -7,18 +7,16 @@ import { LoginFlow } from "./login-flow";
 export default function LoginPage() {
   return (
     <RibbonWrap mode="static" tagString>
-      <div className="gift-tag-anchor">
-        <div className="gift-tag">
-          <div className="gift-tag-edge">
-            <div className="gift-tag-face flex flex-col justify-center py-[14px] pr-[14px] pl-[24px]">
-              <Suspense>
-                <LoginFlow />
-              </Suspense>
-            </div>
-            <span aria-hidden className="gift-tag-face-string" />
+      <div className="gift-tag">
+        <div className="gift-tag-edge">
+          <div className="gift-tag-face">
+            <Suspense>
+              <LoginFlow />
+            </Suspense>
           </div>
-          <span aria-hidden className="gift-tag-hole" />
+          <span aria-hidden className="gift-tag-face-string" />
         </div>
+        <span aria-hidden className="gift-tag-hole" />
       </div>
     </RibbonWrap>
   );

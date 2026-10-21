@@ -136,15 +136,15 @@ export function LoginFlow() {
     setStage("start");
   }
 
-  // Sized in tag units (see .gift-tag-anchor): the tag is 134 x 112.
+  // Sized in tag units (--u, see .gift-tag): the tag is 134 x 112.
   if (stage === "waiting") {
     return (
       <div className="flex flex-col items-start">
-        <h2 className="font-display text-[14px] leading-[16px] text-ink">Check your email</h2>
-        <button type="button" onClick={resend} disabled={resending} className="min-h-[40px] text-[11px] leading-[14px] text-ink hover:underline focus-visible:underline">
+        <h2 className="font-display text-[length:calc(14*var(--u))] leading-[calc(16*var(--u))] text-ink">Check your email</h2>
+        <button type="button" onClick={resend} disabled={resending} className="min-h-[calc(40*var(--u))] text-[length:calc(11*var(--u))] leading-[calc(14*var(--u))] text-ink hover:underline focus-visible:underline">
           {resending ? "Sending…" : "Send it again"}
         </button>
-        <button type="button" onClick={useDifferentEmail} className="min-h-[40px] text-[11px] leading-[14px] text-ink hover:underline focus-visible:underline">
+        <button type="button" onClick={useDifferentEmail} className="min-h-[calc(40*var(--u))] text-[length:calc(11*var(--u))] leading-[calc(14*var(--u))] text-ink hover:underline focus-visible:underline">
           Use another email
         </button>
       </div>
@@ -152,8 +152,8 @@ export function LoginFlow() {
   }
 
   return (
-    <form onSubmit={submit} className="flex w-[96px] flex-col gap-[8px]">
-      <h1 className="wordmark font-display text-[14px] leading-[16px] text-ink">Giftbook</h1>
+    <form onSubmit={submit} className="flex w-[calc(96*var(--u))] flex-col gap-[calc(8*var(--u))]">
+      <h1 className="wordmark font-display text-[length:calc(14*var(--u))] leading-[calc(16*var(--u))] text-ink">Giftbook</h1>
       <label className="gift-tag-input-box block">
         <span className="sr-only">Email</span>
         <input
@@ -167,14 +167,14 @@ export function LoginFlow() {
         />
       </label>
       {error && (
-        <p role="alert" title={error} className="truncate text-[9px] leading-[11px] text-ink">
+        <p role="alert" title={error} className="truncate text-[length:calc(9*var(--u))] leading-[calc(11*var(--u))] text-ink">
           {error}
         </p>
       )}
       <button
         type="submit"
         disabled={!loaded || !email.trim()}
-        className="gift-tag-open h-[20px] w-full rounded-full bg-ink text-[11px] text-gold-text hover:bg-ink-hover disabled:opacity-60"
+        className="gift-tag-open h-[calc(20*var(--u))] w-full rounded-full bg-ink text-[length:calc(11*var(--u))] text-gold-text hover:bg-ink-hover disabled:opacity-60"
       >
         Open
       </button>

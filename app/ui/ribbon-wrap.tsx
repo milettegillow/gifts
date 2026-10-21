@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { gsap } from "gsap";
 import {
   SERVER_FRAME,
   frameFor,
   ribbonShapes,
+  tagPlace,
+  TAG,
   tiedState,
   type Frame,
   type RibbonState,
@@ -35,9 +37,10 @@ function speedForThisLoad(): number {
 // `tagString`, the gift tag's string runs from under the knot to its hole.
 //
 // The ribbon is drawn in a W x H space where one unit is s screen px (see
-// lib/ribbon.ts). CSS places and scales it (.ribbon-space), so the server's
-// first paint is already the right size; the unwrap swaps in the exact
-// frame for this screen on mount, which looks identical.
+// lib/ribbon.ts). On the server, CSS places and scales it (.ribbon-space), so
+// the first paint is already the right size; on mount the exact frame for
+// this screen takes over as the SVG's viewBox, which looks identical. The
+// static wrap recalculates it on resize.
 export function RibbonWrap({
   mode,
   tagString = false,
@@ -50,13 +53,11 @@ export function RibbonWrap({
   const ids = ribbonIds(`rw${useId().replace(/[^a-zA-Z0-9]/g, "")}`);
   const [show, setShow] = useState(() => mode === "static" || !playedThisLoad);
   const speed = useRef<number | null>(null);
+  const [view, setView] = useState<{ s: number; frame: Frame } | null>(null);
 
   const wrap = useRef<HTMLDivElement>(null);
   const pl = useRef<HTMLDivElement>(null);
   const pr = useRef<HTMLDivElement>(null);
-  const sat = useRef<SVGLinearGradientElement>(null);
-  const satD = useRef<SVGLinearGradientElement>(null);
-  const origin = useRef<SVGGElement>(null);
   const v = useRef<SVGPathElement>(null);
   const lpg = useRef<SVGGElement>(null);
   const lp = useRef<SVGPathElement>(null);
@@ -65,20 +66,30 @@ export function RibbonWrap({
   const rp = useRef<SVGPathElement>(null);
   const rt = useRef<SVGPathElement>(null);
   const bow = useRef<SVGGElement>(null);
-  // Each loop: its clip, lower layer, upper layer and shading.
-  const clipL = useRef<SVGPathElement>(null);
+  // Each loop: its lower layer, upper layer and shading.
   const lowerL = useRef<SVGPathElement>(null);
   const frontL = useRef<SVGPathElement>(null);
   const shadeL = useRef<SVGPathElement>(null);
-  const clipR = useRef<SVGPathElement>(null);
   const lowerR = useRef<SVGPathElement>(null);
   const frontR = useRef<SVGPathElement>(null);
   const shadeR = useRef<SVGPathElement>(null);
   const knot = useRef<SVGRectElement>(null);
   const knotShade = useRef<SVGRectElement>(null);
 
+  // Measured from the overlay itself, which is what the CSS scales against.
+  useLayoutEffect(() => {
+    const el = wrap.current;
+    if (!show || !el) return;
+    const measure = () => setView(frameFor(el.clientWidth, el.clientHeight));
+    measure();
+    // The unwrap keeps the frame it started with.
+    if (mode !== "static") return;
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [mode, show]);
+
   useEffect(() => {
-    if (mode !== "unwrap" || !show || !wrap.current) return;
+    if (mode !== "unwrap" || !show || !view) return;
     playedThisLoad = true;
     // Hidden by CSS already; take it out once the page is interactive.
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -87,12 +98,9 @@ export function RibbonWrap({
     }
     speed.current ??= speedForThisLoad();
 
-    // Measured from the overlay itself, which is what the CSS scales against.
-    const { s, frame: F } = frameFor(wrap.current.clientWidth, wrap.current.clientHeight);
+    const { s, frame: F } = view;
     const { W, H, cx, cy } = F;
     const S: RibbonState = tiedState(F);
-    origin.current?.setAttribute("transform", `translate(${-cx} ${-cy})`);
-    for (const g of [sat.current, satD.current]) g?.setAttribute("gradientTransform", `translate(${cx} ${cy})`);
 
     function render() {
       const shapes = ribbonShapes(S, F);
@@ -101,9 +109,9 @@ export function RibbonWrap({
       lt.current?.setAttribute("d", shapes.left[1]);
       rp.current?.setAttribute("d", shapes.right[0]);
       rt.current?.setAttribute("d", shapes.right[1]);
-      // Each loop's clip, lower layer and shading share its outline.
-      for (const el of [clipL.current, lowerL.current, shadeL.current]) el?.setAttribute("d", shapes.loopL);
-      for (const el of [clipR.current, lowerR.current, shadeR.current]) el?.setAttribute("d", shapes.loopR);
+      // Each loop's lower layer and shading share its outline.
+      for (const el of [lowerL.current, shadeL.current]) el?.setAttribute("d", shapes.loopL);
+      for (const el of [lowerR.current, shadeR.current]) el?.setAttribute("d", shapes.loopR);
       frontL.current?.setAttribute("d", shapes.frontL);
       frontR.current?.setAttribute("d", shapes.frontR);
       for (const el of [knot.current, knotShade.current]) {
@@ -137,11 +145,29 @@ export function RibbonWrap({
     return () => {
       tl.kill();
     };
-  }, [mode, show]);
+  }, [mode, show, view]);
 
   if (!show) return null;
-  const F: Frame = SERVER_FRAME;
+  const F: Frame = view?.frame ?? SERVER_FRAME;
   const shapes = ribbonShapes(tiedState(F), F);
+  const tag = tagPlace(F);
+
+  // The tag is HTML over the SVG, placed in screen px from the same frame.
+  // Before mount, CSS fallbacks in .ribbon-wrap stand in.
+  let style: CSSProperties | undefined;
+  if (view && tagString) {
+    const { s } = view;
+    // The string's run across the tag face, from the hole back towards the
+    // knot, in the tag's own (tilted) direction.
+    const angle = (Math.atan2(-tag.hy, -tag.hx) * 180) / Math.PI - TAG.tilt;
+    style = {
+      "--s": s,
+      "--tag-left": `${(F.cx + tag.x) * s}px`,
+      "--tag-top": `${(F.cy + tag.y) * s}px`,
+      "--face-string-angle": `${angle}deg`,
+      "--face-string-length": `${Math.hypot(tag.hx, tag.hy) * s}px`,
+    } as CSSProperties;
+  }
 
   return (
     <div
@@ -149,13 +175,18 @@ export function RibbonWrap({
       // The unwrap is decoration; the login wrap holds the tag form.
       aria-hidden={mode === "unwrap" ? true : undefined}
       className={`ribbon-wrap fixed inset-0 z-[100] ${mode === "unwrap" ? "ribbon-unwrap" : ""}`}
+      style={style}
     >
       <div ref={pl} aria-hidden className="ribbon-paper left-0 w-[calc(50%+1px)]" />
       <div ref={pr} aria-hidden className="ribbon-paper ribbon-paper-right left-1/2 w-1/2" />
-      <svg aria-hidden className="absolute inset-0 h-full w-full overflow-visible">
-        <RibbonDefs ids={ids} satAt={[F.cx, F.cy]} satRef={sat} satDRef={satD} />
-        <g className="ribbon-space">
-          <g ref={origin} transform={`translate(${-F.cx} ${-F.cy})`}>
+      <svg
+        aria-hidden
+        viewBox={view ? `0 0 ${F.W} ${F.H}` : undefined}
+        className="absolute inset-0 h-full w-full overflow-visible"
+      >
+        <RibbonDefs ids={ids} satAt={[F.cx, F.cy]} />
+        <g className={view ? undefined : "ribbon-space"}>
+          <g transform={view ? undefined : `translate(${-F.cx} ${-F.cy})`}>
             <g filter={`url(#${ids.ds})`}>
               <path ref={v} d={shapes.v} fill="none" stroke={`url(#${ids.sat})`} strokeWidth="24" />
               <g ref={lpg}>
@@ -167,12 +198,11 @@ export function RibbonWrap({
                 <path ref={rt} d={shapes.right[1]} fill={`url(#${ids.sat})`} />
               </g>
               <g ref={bow}>
-                <BowLoop ids={ids} side="left" loop={shapes.loopL} front={shapes.frontL} clipRef={clipL} lowerRef={lowerL} frontRef={frontL} shadeRef={shadeL} />
-                <BowLoop ids={ids} side="right" loop={shapes.loopR} front={shapes.frontR} clipRef={clipR} lowerRef={lowerR} frontRef={frontR} shadeRef={shadeR} />
+                <BowLoop ids={ids} side="left" loop={shapes.loopL} front={shapes.frontL} lowerRef={lowerL} frontRef={frontL} shadeRef={shadeL} />
+                <BowLoop ids={ids} side="right" loop={shapes.loopR} front={shapes.frontR} lowerRef={lowerR} frontRef={frontR} shadeRef={shadeR} />
+                {/* From the knot centre to the tag's hole, under the knot. */}
                 {tagString && (
-                  <g transform={`translate(${F.cx} ${F.cy})`}>
-                    <rect className="gift-tag-string" x="0" y="-0.75" width="1" height="1.5" />
-                  </g>
+                  <line x1={F.cx} y1={F.cy} x2={F.cx + tag.hx} y2={F.cy + tag.hy} stroke="#f7e3a6" strokeWidth="1.5" />
                 )}
                 <rect ref={knot} {...shapes.knot} fill={`url(#${ids.sat})`} />
                 <rect ref={knotShade} {...shapes.knot} fill={`url(#${ids.shK})`} />
