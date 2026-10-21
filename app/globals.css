@@ -17,8 +17,11 @@
   --font-serif: var(--font-lora), serif;
 }
 
+/* The gold behind everything, so Safari's status bar and toolbar areas
+   match the paper. The body's own gold is the fixed layer below, which a
+   body background would cover. */
 html {
-  background-color: #c9973e;
+  background: #c9973e linear-gradient(135deg, #a8782a, #f3d68a 35%, #c9973e 55%, #f7e3a6 75%, #a8782a);
 }
 
 body {
@@ -125,7 +128,12 @@ option {
    keep this matched to the overlay, which the unwrap measures on mount. */
 .ribbon-wrap {
   container-type: size;
+  /* The largest viewport, so it covers the screen behind Safari's toolbars
+     however far they've collapsed. */
+  height: 100vh;
+  height: 100lvh;
   --s: clamp(1, tan(atan2(100cqw, 340px)), 1.8);
+  --margin: calc(60 * var(--s) * 1px);
 }
 
 /* Safari can't take atan2() of container units, but can divide lengths. */
@@ -135,25 +143,33 @@ option {
   }
 }
 
-/* The gold paper halves. One gradient from the top-left to the bottom-right
-   corner, the same as an SVG gradient from (0, 0) to (W, H). */
+/* The gold paper halves, reaching 60 units (--margin) past every edge. One
+   gradient across both, from the top-left to the bottom-right corner of the
+   whole paper. */
 .ribbon-paper {
   position: absolute;
-  top: 0;
-  height: 100%;
+  top: calc(-1 * var(--margin));
+  height: calc(100% + 2 * var(--margin));
   background-image: linear-gradient(
-    calc(180deg - atan2(100cqw, 100cqh)),
+    var(--paper-angle, calc(180deg - atan2(100cqw, 100cqh))),
     #a8782a,
     #f3d68a 30%,
     #c9973e 50%,
     #f7e3a6 72%,
     #a8782a
   );
-  background-size: 100cqw 100cqh;
+  background-size: calc(100cqw + 2 * var(--margin)) calc(100cqh + 2 * var(--margin));
+}
+
+.ribbon-paper-left {
+  left: calc(-1 * var(--margin));
+  width: calc(50cqw + var(--margin) + 1px);
 }
 
 .ribbon-paper-right {
-  background-position: -50cqw 0;
+  left: 50cqw;
+  width: calc(50cqw + var(--margin));
+  background-position: calc(-50cqw - var(--margin)) 0;
 }
 
 /* Units relative to the knot. */

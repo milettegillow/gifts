@@ -1,6 +1,8 @@
 // Ribbon and bow geometry for the gift wrap. The wrap draws in a W x H space
 // where the ribbon and bow keep a fixed size: one unit is s screen px, with
-// s = clamp(width / 340, 1, 1.8). The knot sits at (W / 2, H * 0.42).
+// s = clamp(width / 340, 1, 1.8). The knot sits at (W / 2, H * 0.42). Every
+// ribbon end lies at least MARGIN units past the edges, so nothing stops
+// short of the screen.
 
 export type RibbonState = {
   L: number;
@@ -23,6 +25,8 @@ export type RibbonState = {
   by: number;
 };
 
+export const MARGIN = 60;
+
 export type Frame = { W: number; H: number; cx: number; cy: number };
 
 export function frameFor(width: number, height: number): { s: number; frame: Frame } {
@@ -39,7 +43,7 @@ export const SERVER_FRAME: Frame = { W: 4000, H: 4000, cx: 2000, cy: 1680 };
 
 // The tied pose.
 export function tiedState({ H, cx, cy }: Frame): RibbonState {
-  return {L:80,R:80,h:1,hR:1,tilt:4,k:1,ltx:cx-2,la:116,ll:100,rtx:cx+2,ra:64,rl:100,tx:cx,ty:-20,qx:cx,qy:cy+40,bx:cx,by:H+20};
+  return {L:80,R:80,h:1,hR:1,tilt:4,k:1,ltx:cx-2,la:116,ll:100,rtx:cx+2,ra:64,rl:100,tx:cx,ty:-MARGIN,qx:cx,qy:cy+40,bx:cx,by:H+MARGIN};
 }
 
 const P = (x: number, y: number) => x.toFixed(1) + "," + y.toFixed(1);
@@ -86,8 +90,8 @@ export function ribbonShapes(S: RibbonState, F: Frame) {
   const { loop, front, piece, knot } = geometry(F.cx, F.cy);
   return {
     v: `M${P(S.tx,S.ty)} Q${P(S.qx,S.qy)} ${P(S.bx,S.by)}`,
-    left: piece(0, S.ltx, S.la, S.ll),
-    right: piece(F.W, S.rtx, S.ra, S.rl),
+    left: piece(-MARGIN, S.ltx, S.la, S.ll),
+    right: piece(F.W + MARGIN, S.rtx, S.ra, S.rl),
     loopL: loop(-1, Math.max(S.L, 0), Math.max(S.h, 0), S.tilt),
     loopR: loop(1, Math.max(S.R, 0), Math.max(S.hR, 0), S.tilt),
     frontL: front(-1, Math.max(S.L, 0), Math.max(S.h, 0), S.tilt),

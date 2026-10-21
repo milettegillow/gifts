@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Lora, Playfair_Display } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
@@ -25,6 +25,9 @@ export const metadata: Metadata = {
   // Private: keep every page out of search engines.
   robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
 };
+
+// Edge to edge on phones with a notch or home indicator.
+export const viewport: Viewport = { viewportFit: "cover" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

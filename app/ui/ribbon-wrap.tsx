@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import {
   SERVER_FRAME,
   frameFor,
+  MARGIN,
   ribbonShapes,
   tagPlace,
   TAG,
@@ -54,6 +55,8 @@ export function RibbonWrap({
   const [show, setShow] = useState(() => mode === "static" || !playedThisLoad);
   const speed = useRef<number | null>(null);
   const [view, setView] = useState<{ s: number; frame: Frame } | null>(null);
+  // How far the unwrap had got, kept if a resize redraws it mid-way.
+  const progress = useRef(0);
 
   const wrap = useRef<HTMLDivElement>(null);
   const pl = useRef<HTMLDivElement>(null);
@@ -76,17 +79,26 @@ export function RibbonWrap({
   const knot = useRef<SVGRectElement>(null);
   const knotShade = useRef<SVGRectElement>(null);
 
-  // Measured from the overlay itself, which is what the CSS scales against.
+  // Measured from the overlay itself (100lvh tall, so it covers the screen
+  // behind Safari's toolbars too), not the window.
   useLayoutEffect(() => {
     const el = wrap.current;
     if (!show || !el) return;
-    const measure = () => setView(frameFor(el.clientWidth, el.clientHeight));
+    let size = "";
+    const measure = () => {
+      const { width, height } = el.getBoundingClientRect();
+      if (`${width}x${height}` === size) return;
+      size = `${width}x${height}`;
+      setView(frameFor(width, height));
+    };
     measure();
-    // The unwrap keeps the frame it started with.
-    if (mode !== "static") return;
     window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [mode, show]);
+    window.visualViewport?.addEventListener("resize", measure);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.visualViewport?.removeEventListener("resize", measure);
+    };
+  }, [show]);
 
   useEffect(() => {
     if (mode !== "unwrap" || !show || !view) return;
@@ -125,24 +137,30 @@ export function RibbonWrap({
     }
     render();
 
-    // The paper is HTML, so it slides in screen px.
-    const slide = (W / 2 + 10) * s;
+    // Start clean if a resize is redrawing the unwrap.
+    gsap.set([lpg.current, rpg.current, pl.current, pr.current, bow.current], { clearProps: "transform,opacity" });
+
+    // Everything leaves by at least MARGIN units. The paper is HTML, so it
+    // slides in screen px.
+    const M = MARGIN;
+    const slide = (W / 2 + 10 + M) * s;
     const tl = gsap.timeline({ paused: true, onUpdate: render, onComplete: () => setShow(false) });
     tl.to(S, { L: 10, rl: 150, ra: 52, duration: 1.1, ease: "power1.inOut" })
       .to(S, { L: 0, k: 0.85, duration: 0.15, ease: "power2.in" })
       .to(S, { R: 0, hR: 0, h: 0, k: 0, tilt: 0, duration: 0.2, ease: "power2.in" })
       .set(bow.current, { opacity: 0 })
       .to(S, { ltx: cx - 44, la: 97, ll: 88, rtx: cx + 46, ra: 84, rl: 118, duration: 1, ease: "elastic.out(1,0.4)" }, "-=0.08")
-      .to(S, { qx: cx + 12, ty: -5, duration: 0.35, ease: "sine.inOut" }, "-=0.35")
-      .to(S, { tx: -20, ty: -20, qx: cx - 80, qy: cy + 50, duration: 0.6, ease: "power1.in" })
-      .to(S, { tx: -300, ty: cy + 230, qx: -60, qy: cy + 230, duration: 0.5, ease: "power2.in" })
-      .to(S, { bx: -120, by: H + 40, duration: 0.3, ease: "power2.in" }, "-=0.15")
-      .to(lpg.current, { y: H + 140, x: -20, rotation: -8, transformOrigin: "50% 50%", duration: 0.6, ease: "power2.in" }, "<-0.35")
-      .to(rpg.current, { y: H + 140, x: 20, rotation: 8, transformOrigin: "50% 50%", duration: 0.6, ease: "power2.in" }, "<")
+      .to(S, { qx: cx + 12, ty: 15 - M, duration: 0.35, ease: "sine.inOut" }, "-=0.35")
+      .to(S, { tx: -20 - M, ty: -20 - M, qx: cx - 80, qy: cy + 50, duration: 0.6, ease: "power1.in" })
+      .to(S, { tx: -300 - M, ty: cy + 230, qx: -60 - M, qy: cy + 230, duration: 0.5, ease: "power2.in" })
+      .to(S, { bx: -120 - M, by: H + 40 + M, duration: 0.3, ease: "power2.in" }, "-=0.15")
+      .to(lpg.current, { y: H + 140 + M, x: -20, rotation: -8, transformOrigin: "50% 50%", duration: 0.6, ease: "power2.in" }, "<-0.35")
+      .to(rpg.current, { y: H + 140 + M, x: 20, rotation: 8, transformOrigin: "50% 50%", duration: 0.6, ease: "power2.in" }, "<")
       .to(pl.current, { x: -slide, duration: 0.6, ease: "power2.inOut" }, "-=0.15")
       .to(pr.current, { x: slide, duration: 0.6, ease: "power2.inOut" }, "<");
-    tl.timeScale(speed.current).play();
+    tl.timeScale(speed.current).progress(progress.current).play();
     return () => {
+      progress.current = tl.progress();
       tl.kill();
     };
   }, [mode, show, view]);
@@ -152,16 +170,22 @@ export function RibbonWrap({
   const shapes = ribbonShapes(tiedState(F), F);
   const tag = tagPlace(F);
 
-  // The tag is HTML over the SVG, placed in screen px from the same frame.
+  // The paper and the tag are HTML, placed in screen px from the same frame.
   // Before mount, CSS fallbacks in .ribbon-wrap stand in.
+  const deg = (rad: number) => (rad * 180) / Math.PI;
   let style: CSSProperties | undefined;
+  if (view) {
+    const { s } = view;
+    // The paper's gradient runs corner to corner of the paper, margin included.
+    style = { "--s": s, "--paper-angle": `${180 - deg(Math.atan2(F.W + 2 * MARGIN, F.H + 2 * MARGIN))}deg` } as CSSProperties;
+  }
   if (view && tagString) {
     const { s } = view;
     // The string's run across the tag face, from the hole back towards the
     // knot, in the tag's own (tilted) direction.
-    const angle = (Math.atan2(-tag.hy, -tag.hx) * 180) / Math.PI - TAG.tilt;
+    const angle = deg(Math.atan2(-tag.hy, -tag.hx)) - TAG.tilt;
     style = {
-      "--s": s,
+      ...style,
       "--tag-left": `${(F.cx + tag.x) * s}px`,
       "--tag-top": `${(F.cy + tag.y) * s}px`,
       "--face-string-angle": `${angle}deg`,
@@ -177,8 +201,8 @@ export function RibbonWrap({
       className={`ribbon-wrap fixed inset-0 z-[100] ${mode === "unwrap" ? "ribbon-unwrap" : ""}`}
       style={style}
     >
-      <div ref={pl} aria-hidden className="ribbon-paper left-0 w-[calc(50%+1px)]" />
-      <div ref={pr} aria-hidden className="ribbon-paper ribbon-paper-right left-1/2 w-1/2" />
+      <div ref={pl} aria-hidden className="ribbon-paper ribbon-paper-left" />
+      <div ref={pr} aria-hidden className="ribbon-paper ribbon-paper-right" />
       <svg
         aria-hidden
         viewBox={view ? `0 0 ${F.W} ${F.H}` : undefined}
